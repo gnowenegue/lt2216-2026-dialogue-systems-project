@@ -1,10 +1,10 @@
-import { assign, createActor, setup } from "xstate";
-import { speechstate } from "speechstate";
 import { createBrowserInspector } from "@statelyai/inspect";
-import type { DMContext, DMEvents, NLUObject } from "./types";
 import type { Hypothesis } from "speechstate";
-import { prompts } from "./prompts";
+import { speechstate } from "speechstate";
+import { assign, createActor, setup } from "xstate";
 import { settings, sharedSynthesizer } from "./config";
+import { prompts } from "./prompts";
+import type { DMContext, DMEvents, NLUObject } from "./types";
 
 const inspector = createBrowserInspector();
 
