@@ -8,6 +8,8 @@ import type { DMContext, DMEvents, NLUObject } from "./types";
 
 const inspector = createBrowserInspector();
 
+// const categories = ["animal", "celebrity", "country", "sports"] as const;
+
 const dmMachine = setup({
   types: {
     context: {} as DMContext,
@@ -37,7 +39,7 @@ const dmMachine = setup({
     },
     "spst.listen": ({ context }) =>
       context.spstRef.send({ type: "LISTEN", value: { nlu: true } }),
-    "spst.recognised": assign(({ event, context }) => {
+    "spst.recognised": assign(({ event }) => {
       const recognisedEvent = event as {
         type: "RECOGNISED";
         value: Hypothesis[];
