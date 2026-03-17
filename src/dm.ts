@@ -1,19 +1,51 @@
 import { createBrowserInspector } from "@statelyai/inspect";
 import type { Hypothesis } from "speechstate";
 import { speechstate } from "speechstate";
-import { assign, createActor, setup } from "xstate";
-import { settings, sharedSynthesizer } from "./config";
+import { assign, createActor, setup, fromPromise } from "xstate";
+import { settings, speechSynthesizer, player } from "./config";
 import { prompts } from "./prompts";
 import type { DMContext, DMEvents, NLUObject } from "./types";
+import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 
-const inspector = createBrowserInspector();
-
-// const categories = ["animal", "celebrity", "country", "sports"] as const;
+// const inspector = createBrowserInspector();
+const inspector = createBrowserInspector({
+  filter: (inspectEvent: any) => {
+    if (
+      inspectEvent.type === "@xstate.event" &&
+      !inspectEvent.event?.type.includes("xstate")
+    ) {
+      console.log("🖥️ [DM] Event:", inspectEvent.event);
+    }
+    return true;
+  },
+});
 
 const dmMachine = setup({
   types: {
     context: {} as DMContext,
     events: {} as DMEvents,
+  },
+  actors: {
+    speakSSML: fromPromise(async ({ input }: { input: { ssml: string } }) => {
+      return new Promise<void>((resolve, reject) => {
+        speechSynthesizer.speakSsmlAsync(
+          input.ssml,
+          (result) => {
+            if (result.reason === sdk.ResultReason.Canceled) {
+              console.error("⚠️ Speech Synthesis canceled.");
+              console.error("⚠️ Speech Error Details:", result.errorDetails);
+              reject(new Error("Synthesis canceled"));
+            } else {
+              resolve();
+            }
+          },
+          (error) => {
+            console.error("⚠️ Speech synthesis error:", error);
+            reject(error);
+          },
+        );
+      });
+    }),
   },
   actions: {
     "spst.speak": ({ context }, params: { utterance: string }) => {
@@ -24,21 +56,29 @@ const dmMachine = setup({
         value: { utterance: params.utterance },
       });
     },
-    "sdk.speak": ({ self }, params: { ssml: string }) => {
-      if (!params.ssml) return;
-      sharedSynthesizer.speakSsmlAsync(
-        params.ssml,
-        () => {
-          self.send({ type: "SPEAK_COMPLETE" });
-        },
-        (error) => {
-          console.error("Speech synthesis error:", error);
-          self.send({ type: "SPEAK_COMPLETE" });
-        },
-      );
+    "ssml.stop": () => {
+      player.pause();
+
+      try {
+        const audioNode = (player as any).internalAudio;
+        // Ensure the node exists and the duration is a valid, finite number
+        if (audioNode && Number.isFinite(audioNode.duration)) {
+          audioNode.currentTime = audioNode.duration;
+        }
+      } catch (err) {
+        console.error("⚠️ Failed to safely clear the audio buffer:", err);
+      }
     },
-    "spst.listen": ({ context }) =>
-      context.spstRef.send({ type: "LISTEN", value: { nlu: true } }),
+    "spst.listen": ({ context }, params?: { noInputTimeout?: number }) =>
+      context.spstRef.send({
+        type: "LISTEN",
+        value: {
+          nlu: true,
+          ...(params?.noInputTimeout !== undefined
+            ? { noInputTimeout: params.noInputTimeout }
+            : {}),
+        },
+      }),
     "spst.recognised": assign(({ event }) => {
       const recognisedEvent = event as {
         type: "RECOGNISED";
@@ -80,11 +120,18 @@ const dmMachine = setup({
       entry: "spst.resetSession",
       states: {
         Prompt: {
-          entry: { type: "sdk.speak", params: { ssml: prompts.greeting } },
-          on: { SPEAK_COMPLETE: "Ask" },
+          invoke: {
+            src: "speakSSML",
+            input: { ssml: prompts.greetingTemp },
+            onDone: { target: "Ask" },
+            onError: { target: "Ask" },
+          },
         },
         Ask: {
-          entry: { type: "spst.listen" },
+          entry: [
+            () => console.log("Entering Ask state"),
+            { type: "spst.listen" },
+          ],
           on: {
             ASR_NOINPUT: { actions: "spst.clearTurn", target: "NoInput" },
             LISTEN_COMPLETE: { target: "Done" },

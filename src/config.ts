@@ -26,10 +26,11 @@ export const settings: Settings = {
   ttsDefaultVoice: "en-US-DavisNeural",
 };
 
-// Create a single, reusable synthesizer instance to reduce latency and overhead
 const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
-const audioConfig = sdk.AudioConfig.fromDefaultSpeakerOutput();
-export const sharedSynthesizer = new sdk.SpeechSynthesizer(
+export const player = new sdk.SpeakerAudioDestination();
+export const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
+export const speechSynthesizer = new sdk.SpeechSynthesizer(
   speechConfig,
   audioConfig,
 );
+
