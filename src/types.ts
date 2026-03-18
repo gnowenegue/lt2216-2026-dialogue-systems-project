@@ -9,6 +9,7 @@ export interface DMContext {
   utterance: string | null;
 
   selectedCategory: string | null;
+  secretWord: string | null;
 }
 
 export type DMEvents =

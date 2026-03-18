@@ -37,5 +37,9 @@ export const prompts = {
 </speak>`,
   noInput: "I can't hear you!",
   invalidCategory:
-    "I didn't quite catch that. Please choose Animal, Celebrity, Country, Sports, or say Random.",
+    "I didn't quite catch that. Please choose Animal, Celebrity, Country, Sports, or Random.",
+  categorySelected: (category: string | null) =>
+    `You've selected the category ${category}.`,
+  secretWordGenerated:
+    "I've generated a secret word. You may begin to ask questions!",
 };

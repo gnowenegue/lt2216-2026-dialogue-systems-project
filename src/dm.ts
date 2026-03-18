@@ -7,6 +7,7 @@ import { assign, createActor, setup } from "xstate";
 import { settings, speechSynthesizer } from "./config";
 import { prompts } from "./prompts";
 import type { DMContext, DMEvents, NLUObject } from "./types";
+import words from "./words";
 
 const inspector = createBrowserInspector();
 // const inspector = createBrowserInspector({
@@ -34,6 +35,17 @@ const getCategoryFromNLU = (nluResult: NLUObject | null): string | null => {
     (e) => e.category === "Category",
   );
   return categoryEntity ? categoryEntity.text : null;
+};
+
+const generateSecretWord = (category: string | null): string | null => {
+  if (!category) return null;
+
+  const categoryKey = category.toLowerCase() as keyof typeof words;
+  const categoryWords = words[categoryKey];
+
+  if (!categoryWords || categoryWords.length === 0) return null;
+
+  return categoryWords[Math.floor(Math.random() * categoryWords.length)];
 };
 
 const dmMachine = setup({
@@ -141,10 +153,16 @@ const dmMachine = setup({
       lastResult: null,
       interpretation: null,
       selectedCategory: null,
+      secretWord: null,
     }),
     assignCategory: assign({
       selectedCategory: ({ context: { interpretation } }) => {
         return getCategoryFromNLU(interpretation);
+      },
+    }),
+    assignSecretWord: assign({
+      secretWord: ({ context: { selectedCategory } }) => {
+        return generateSecretWord(selectedCategory);
       },
     }),
   },
@@ -228,8 +246,31 @@ const dmMachine = setup({
       onDone: "Game",
     },
     Game: {
-      entry: () => console.log("In Game state..."),
-      on: { CLICK: "Greeting" },
+      initial: "Prompt",
+      states: {
+        Prompt: {
+          entry: {
+            type: "spst.speak",
+            params: ({ context }) => ({
+              utterance: prompts.categorySelected(context.selectedCategory),
+            }),
+          },
+          on: { SPEAK_COMPLETE: "AssignSecretWord" },
+        },
+        AssignSecretWord: {
+          always: {
+            actions: "assignSecretWord",
+            target: "PromptStartGame",
+          },
+        },
+        PromptStartGame: {
+          entry: {
+            type: "spst.speak",
+            params: { utterance: prompts.secretWordGenerated },
+          },
+          on: { SPEAK_COMPLETE: "#DM.Done" },
+        },
+      },
     },
     Done: {
       on: { CLICK: "Greeting" },
