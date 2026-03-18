@@ -1,27 +1,13 @@
-import { createBrowserInspector } from "@statelyai/inspect";
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import type { Hypothesis } from "speechstate";
 import { speechstate } from "speechstate";
-import { assign, createActor, fromPromise, setup } from "xstate";
+import { assign, fromPromise, setup } from "xstate";
 
 import { GROQ_API_KEY } from "./azure";
 import { settings, speechSynthesizer, totalQuestionsAllowed } from "./config";
 import { prompts } from "./prompts";
 import type { DMContext, DMEvents, GroqResponse, NLUObject } from "./types";
 import words from "./words";
-
-const inspector = createBrowserInspector();
-// const inspector = createBrowserInspector({
-//   filter: (inspectEvent: any) => {
-//     if (
-//       inspectEvent.type === "@xstate.event" &&
-//       !inspectEvent.event?.type.includes("xstate")
-//     ) {
-//       console.log("🖥️ [DM] Event:", inspectEvent.event);
-//     }
-//     return true;
-//   },
-// });
 
 const audioContext = new AudioContext();
 
@@ -131,7 +117,7 @@ const processQuestionWithGroq = async (
   }
 };
 
-const dmMachine = setup({
+export const dmMachine = setup({
   types: {
     context: {} as DMContext,
     events: {} as DMEvents,
@@ -441,25 +427,3 @@ const dmMachine = setup({
     },
   },
 });
-
-const dmActor = createActor(dmMachine, { inspect: inspector.inspect }).start();
-
-dmActor.subscribe((snapshot) => {
-  console.group("State update");
-  console.log("DM State:", snapshot.value);
-  console.log("DM Context:", snapshot.context);
-  console.groupEnd();
-});
-
-export function setupButton(element: HTMLButtonElement) {
-  element.addEventListener("click", () => {
-    dmActor.send({ type: "CLICK" });
-  });
-  dmActor.subscribe((snapshot) => {
-    const spstSnap = snapshot.context.spstRef.getSnapshot();
-    const meta: { view?: string } = Object.values(
-      spstSnap.getMeta() as Record<string, any>,
-    )[0] || { view: undefined };
-    element.innerHTML = `${meta.view}`;
-  });
-}

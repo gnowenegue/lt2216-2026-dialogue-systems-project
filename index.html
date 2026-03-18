@@ -4,21 +4,66 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dialogue Systems Boilerplate</title>
+    <title>20-Question Game</title>
   </head>
   <body
-    class="m-0 flex min-h-screen min-w-[320px] place-items-center bg-white text-slate-800 antialiased dark:bg-[#242424] dark:text-white/87 font-sans"
+    class="m-0 flex min-h-screen min-w-[320px] place-items-center bg-white text-slate-800 antialiased dark:bg-zinc-800 dark:text-white/90 font-sans"
   >
-    <div id="app" class="mx-auto max-w-7xl p-8 text-center">
+    <div
+      id="cover"
+      style="
+        width: 100vw;
+        height: 100vh;
+        background-color: #27272a;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+      "
+    ></div>
+    <div id="app" class="p-8 mx-auto text-center max-w-7xl">
       <div>
         <div class="p-8">
           <button
-            id="counter"
+            id="game"
             type="button"
-            class="cursor-pointer rounded-lg border border-transparent bg-[#f9f9f9] px-5 py-2.5 text-base font-medium transition-colors hover:border-[#646cff] hover:text-[#646cff] focus:outline-4 dark:bg-[#1a1a1a] dark:hover:border-[#646cff] dark:hover:text-[#646cff]"
+            disabled
+            class="rounded-lg border border-transparent bg-slate-50 px-5 py-2.5 text-base font-medium transition-colors duration-300 ease-in-out enabled:cursor-pointer enabled:hover:border-indigo-500 enabled:hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-900 dark:enabled:hover:border-indigo-500 dark:enabled:hover:text-indigo-500"
           >
-            Start Dialogue
+            Loading Game...
           </button>
+          <div
+            id="rules"
+            class="hidden max-w-md p-6 mx-auto mt-8 text-sm text-left border shadow-sm rounded-xl border-slate-200 bg-slate-50 text-slate-700 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-slate-300"
+          >
+            <h2 class="mb-3 text-lg font-bold text-slate-900 dark:text-white">
+              How to play:
+            </h2>
+            <ul class="pl-5 space-y-2 list-disc list-outside">
+              <li>I will think of a secret word from a category you choose.</li>
+              <li>
+                You can ask up to 20 <strong>Yes or No</strong> questions to
+                guess the word.
+              </li>
+              <li>
+                You win if you guess the word correctly before running out of
+                questions!
+              </li>
+            </ul>
+          </div>
+          <p
+            id="spst-meta"
+            class="mt-4 text-lg font-semibold transition-opacity text-slate-700 dark:text-slate-300"
+          >
+            Mic Status: <span class="italic value">Off</span>
+          </p>
+          <p
+            id="questions-remaining"
+            class="hidden mt-4 text-lg font-semibold transition-opacity text-slate-700 dark:text-slate-300"
+          >
+            Questions Remaining:
+            <span class="font-extrabold text-indigo-500 value"></span>
+          </p>
         </div>
       </div>
     </div>
