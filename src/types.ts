@@ -10,6 +10,7 @@ export interface DMContext {
 
   selectedCategory: string | null;
   secretWord: string | null;
+  questionStatus: GroqResponse | null;
 }
 
 export type DMEvents =
@@ -32,4 +33,12 @@ export interface NLUObject {
   entities: Entity[];
   intents: Intent[];
   topIntent: string;
+}
+
+export interface GroqResponse {
+  intent: "ASK_QUESTION" | "GUESS_WORD" | "INVALID_INTENT";
+  answer: "Yes" | "No" | null;
+  is_correct_guess: boolean;
+  is_yes_no_question: boolean;
+  explanation: string;
 }
