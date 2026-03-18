@@ -11,6 +11,7 @@ export interface DMContext {
   selectedCategory: string | null;
   secretWord: string | null;
   questionStatus: GroqResponse | null;
+  questionsRemaining: number;
 }
 
 export type DMEvents =

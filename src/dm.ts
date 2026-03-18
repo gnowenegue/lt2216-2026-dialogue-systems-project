@@ -5,7 +5,7 @@ import { speechstate } from "speechstate";
 import { assign, createActor, fromPromise, setup } from "xstate";
 
 import { GROQ_API_KEY } from "./azure";
-import { settings, speechSynthesizer } from "./config";
+import { settings, speechSynthesizer, totalQuestionsAllowed } from "./config";
 import { prompts } from "./prompts";
 import type { DMContext, DMEvents, GroqResponse, NLUObject } from "./types";
 import words from "./words";
@@ -96,19 +96,6 @@ const processQuestionWithGroq = async (
   utterance: string,
   secretWord: string,
 ): Promise<GroqResponse | null> => {
-  const systemPrompt = `You are the host of a 20 Questions game.
-The secret word is "${secretWord}".
-The user will ask a yes/no question or make a guess.
-Respond strictly in JSON format with the following schema:
-{
-  "intent": "ASK_QUESTION" | "GUESS_WORD" | "INVALID_INTENT",
-  "answer": "Yes" | "No" | null,
-  "is_correct_guess": boolean,
-  "is_yes_no_question": boolean,
-  "explanation": "Brief explanation of your reasoning. CRITICAL: Do NOT reveal the secret word here, either directly or indirectly! If intent is GUESS_WORD, provide highly varied, conversational, and playful feedback (e.g., 'Oh, so close, but no!', 'Nice try, but that is not it.'). Do not use repetitive phrasing."
-}
-If the user asks something that is not a yes/no question, set intent to "INVALID_INTENT".`;
-
   try {
     const response = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -121,7 +108,7 @@ If the user asks something that is not a yes/no question, set intent to "INVALID
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: prompts.systemPrompt(secretWord) },
             { role: "user", content: utterance },
           ],
           response_format: { type: "json_object" },
@@ -190,7 +177,7 @@ const dmMachine = setup({
             : {}),
         },
       }),
-    "spst.recognised": assign(({ event, context }) => {
+    "spst.recognised": assign(({ event }) => {
       const recognisedEvent = event as {
         type: "RECOGNISED";
         value: Hypothesis[];
@@ -205,12 +192,19 @@ const dmMachine = setup({
         utterance,
       };
     }),
-    "spst.clearTurn": assign({ lastResult: null, interpretation: null }),
+    "spst.clearTurn": assign({
+      lastResult: null,
+      interpretation: null,
+      utterance: null,
+    }),
     "spst.resetSession": assign({
       lastResult: null,
       interpretation: null,
+      utterance: null,
       selectedCategory: null,
       secretWord: null,
+      questionStatus: null,
+      questionsRemaining: totalQuestionsAllowed,
     }),
     assignCategory: assign({
       selectedCategory: ({ context: { interpretation } }) => {
@@ -221,6 +215,10 @@ const dmMachine = setup({
       secretWord: ({ context: { selectedCategory } }) => {
         return generateSecretWord(selectedCategory);
       },
+    }),
+    decrementQuestionsRemaining: assign({
+      questionsRemaining: ({ context: { questionsRemaining } }) =>
+        questionsRemaining - 1,
     }),
   },
   guards: {
@@ -242,6 +240,9 @@ const dmMachine = setup({
     isInvalidIntent: ({ context: { questionStatus } }) => {
       return questionStatus?.intent === "INVALID_INTENT";
     },
+    isGameOver: ({ context: { questionsRemaining } }) => {
+      return questionsRemaining <= 0;
+    },
   },
 }).createMachine({
   context: ({ spawn }) => ({
@@ -252,6 +253,7 @@ const dmMachine = setup({
     selectedCategory: null,
     secretWord: null,
     questionStatus: null,
+    questionsRemaining: totalQuestionsAllowed,
   }),
   id: "DM",
   initial: "Prepare",
@@ -271,18 +273,13 @@ const dmMachine = setup({
       entry: "spst.resetSession",
       states: {
         Prompt: {
-          entry: [
-            { type: "speakSSML", params: { ssml: prompts.greetingTemp } },
-          ],
+          entry: { type: "speakSSML", params: { ssml: prompts.greetingTemp } },
           on: {
             SPEAK_COMPLETE: "Listen",
           },
         },
         Listen: {
-          entry: [
-            () => console.log("Entering Listen state"),
-            { type: "spst.listen" },
-          ],
+          entry: "spst.listen",
           on: {
             ASR_NOINPUT: { actions: "spst.clearTurn" },
             LISTEN_COMPLETE: { target: "CheckCategory" },
@@ -345,8 +342,21 @@ const dmMachine = setup({
           entry: { type: "spst.listen" },
           on: {
             ASR_NOINPUT: { actions: "spst.clearTurn" },
-            LISTEN_COMPLETE: { target: "AskQuestion" },
+            LISTEN_COMPLETE: { target: "CheckInput" },
           },
+        },
+        CheckInput: {
+          always: [
+            {
+              guard: "hasNoInput",
+              target: "NoInput",
+            },
+            "AskQuestion",
+          ],
+        },
+        NoInput: {
+          entry: { type: "spst.speak", params: { utterance: prompts.noInput } },
+          on: { SPEAK_COMPLETE: "Listen" },
         },
         AskQuestion: {
           invoke: {
@@ -366,21 +376,36 @@ const dmMachine = setup({
             console.log("Question Status:", context.questionStatus);
           },
           always: [
-            { target: "ProcessAskingQuestion", guard: "isAskingQuestion" },
-            { target: "ProcessGuessingWord", guard: "isGuessingWord" },
-            { target: "ProcessInvalidIntent" },
+            { target: "HandleAskingQuestion", guard: "isAskingQuestion" },
+            { target: "HandleGuessingWord", guard: "isGuessingWord" },
+            { target: "HandleInvalidIntent" },
           ],
         },
-        ProcessAskingQuestion: {
-          entry: {
-            type: "spst.speak",
-            params: ({ context: { questionStatus } }) => ({
-              utterance: `${questionStatus?.answer}. ${questionStatus?.explanation}`,
-            }),
-          },
-          on: { SPEAK_COMPLETE: "Listen" },
+        HandleAskingQuestion: {
+          entry: [
+            "decrementQuestionsRemaining",
+            {
+              type: "spst.speak",
+              params: ({ context: { questionStatus } }) => ({
+                utterance: `${questionStatus?.answer}. ${questionStatus?.explanation}`,
+              }),
+            },
+          ],
+          on: { SPEAK_COMPLETE: "CheckQuestionsRemaining" },
         },
-        ProcessGuessingWord: {
+        HandleGuessingWord: {
+          entry: [
+            "decrementQuestionsRemaining",
+            {
+              type: "spst.speak",
+              params: ({ context: { questionStatus } }) => ({
+                utterance: questionStatus?.explanation ?? "",
+              }),
+            },
+          ],
+          on: { SPEAK_COMPLETE: "CheckQuestionsRemaining" },
+        },
+        HandleInvalidIntent: {
           entry: {
             type: "spst.speak",
             params: ({ context: { questionStatus } }) => ({
@@ -389,16 +414,27 @@ const dmMachine = setup({
           },
           on: { SPEAK_COMPLETE: "Listen" },
         },
-        ProcessInvalidIntent: {
+        CheckQuestionsRemaining: {
+          always: [
+            {
+              guard: "isGameOver",
+              target: "GameOver",
+            },
+            "Listen",
+          ],
+        },
+        GameOver: {
           entry: {
             type: "spst.speak",
-            params: ({ context: { questionStatus } }) => ({
-              utterance: questionStatus?.explanation ?? "",
-            }),
+            params: { utterance: "Game over! Thanks for playing!" },
           },
-          on: { SPEAK_COMPLETE: "Listen" },
+          on: { SPEAK_COMPLETE: "Done" },
+        },
+        Done: {
+          type: "final",
         },
       },
+      onDone: "Done",
     },
     Done: {
       on: { CLICK: "Greeting" },

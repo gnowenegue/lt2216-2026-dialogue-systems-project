@@ -27,7 +27,7 @@ export const settings: Settings = {
   speechRecognitionEndpointId: "2b4b8761-8d0e-44ce-89a5-15ca6b7cd335",
 };
 
-export const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
+const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
 // export const player = new sdk.SpeakerAudioDestination();
 // export const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
 export const speechSynthesizer = new sdk.SpeechSynthesizer(
@@ -35,3 +35,4 @@ export const speechSynthesizer = new sdk.SpeechSynthesizer(
   null,
 );
 
+export const totalQuestionsAllowed = 20;
