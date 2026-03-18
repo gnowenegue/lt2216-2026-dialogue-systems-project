@@ -8,14 +8,16 @@
 - [x] Design the "Unified Groq-First" architecture.
 
 ## Phase 2: Core Data & Prompts
-- [ ] Create `src/words.ts` with categorized word lists (Animal, Celebrity, Country, Sports).
-- [ ] Define initial game prompts in `src/prompts.ts` (Greeting, Rules, Error messages).
+- [x] Create `src/words.ts` with categorized word lists (Animal, Celebrity, Country, Sports).
+- [x] Define initial game prompts in `src/prompts.ts` (Greeting, Rules, Error messages).
 
 ## Phase 3: Dialogue Management (XState Skeleton)
 - [ ] Implement `dmMachine` in `src/dm.ts`:
-    - [ ] State: `Prepare` (Azure SDK initialization).
+    - [x] State: `Prepare` (Azure SDK initialization).
     - [ ] State: `Welcome` (Greet and explain rules).
     - [ ] State: `SelectingCategory` (Wait for category choice).
+        - [ ] Implement **Fast-Path** (Regex/.includes) for instant classification.
+        - [ ] (Optional) Implement **Slow-Path** (Groq Fallback) for robust intent extraction.
     - [ ] State: `GeneratingWord` (Select secret word, init counter).
     - [ ] State: `QuestioningLoop` (Main game loop).
     - [ ] State: `GameOver` (Win/Loss logic).

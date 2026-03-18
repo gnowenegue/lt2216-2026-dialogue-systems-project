@@ -66,3 +66,30 @@ While XState manages the state, Groq provides the "intent" that triggers state t
 - **`GUESS_WORD`**: Check for win/loss.
 - **`CHANGE_CATEGORY`**: Allows the user to reset the game mid-flow (XState must have a transition back to `SelectingCategory`).
 - **`INVALID_INPUT`**: Prompt user for a Yes/No question without penalizing the count.
+
+### Category Selection Strategy (Hybrid Waterfall)
+To balance speed and robustness during the `Greeting.Listen` state when a user selects a category:
+- **Initial Implementation (Fast Path):** Use simple Regular Expressions and string matching (e.g., `.includes()`) to classify user input into the 5 available categories. This provides instant, zero-cost classification for direct, clear answers (e.g., "Animal").
+- **Future Enhancement (Slow Path / Groq Fallback):** If the basic regex fails due to conversational padding ("Uhh, let's do sports"), synonyms ("famous person"), or ASR mishears (e.g., "Enamel" instead of "Animal"), the system falls back to Groq to extract the true intent before rejecting the input.
+
+---
+
+## Lessons Learned
+
+### 1. Acoustic Echo & "Barge-in" Design
+During the development of the voice-enabled flow, we encountered a significant hardware/software hurdle regarding **Acoustic Echo Cancellation (AEC)**.
+
+#### The Problem: The Echo Loop
+Initially, we aimed for a natural "barge-in" feature where the user could interrupt a long greeting prompt by saying a command like "skip." This required opening the microphone (ASR) at the same time the speakers (TTS) were active.
+
+However, we found that unless the hardware or browser has perfect AEC, the microphone picks up the system's own voice. This created a race condition where the bot would interpret its own speech as user input, immediately triggering a `RECOGNIZED` event and cutting itself off.
+
+#### The Resolution: The UI Pivot
+To ensure a robust and predictable user experience, we pivoted from a voice-triggered interrupt to a **physical UI button** for skipping prompts.
+
+**Key Benefits:**
+1.  **Eliminates Feedback Loops:** By keeping the microphone off during long system prompts, we remove the risk of the system "hearing" itself.
+2.  **Reliability:** A physical button provides a 100% success rate for interrupting the flow, regardless of the user's acoustic environment or hardware quality.
+3.  **Clean State Management:** XState handles the button event by instantly stopping the audio player, discarding any pending speech promises, and transitioning safely to the next state.
+
+
