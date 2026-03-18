@@ -1,0 +1,122 @@
+[
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Animal",
+    "entities": [{ "category": "Category", "offset": 0, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Celebrity",
+    "entities": [{ "category": "Category", "offset": 0, "length": 9 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Country",
+    "entities": [{ "category": "Category", "offset": 0, "length": 7 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Sports",
+    "entities": [{ "category": "Category", "offset": 0, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Random",
+    "entities": [{ "category": "Category", "offset": 0, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "I want to pick the Animal category.",
+    "entities": [{ "category": "Category", "offset": 19, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Let's do Celebrity.",
+    "entities": [{ "category": "Category", "offset": 9, "length": 9 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Can we talk about a Country?",
+    "entities": [{ "category": "Category", "offset": 20, "length": 7 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "I'm interested in Sports.",
+    "entities": [{ "category": "Category", "offset": 18, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Just give me something Random.",
+    "entities": [{ "category": "Category", "offset": 23, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Select the Sports category please.",
+    "entities": [{ "category": "Category", "offset": 11, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "I'll choose Animals.",
+    "entities": [{ "category": "Category", "offset": 12, "length": 7 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Tell me about a famous Celebrity.",
+    "entities": [{ "category": "Category", "offset": 23, "length": 9 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Country sounds good.",
+    "entities": [{ "category": "Category", "offset": 0, "length": 7 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Surprise me with a Random choice.",
+    "entities": [{ "category": "Category", "offset": 19, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Let's go with the Animal option.",
+    "entities": [{ "category": "Category", "offset": 18, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "I'd like to learn about a new Country.",
+    "entities": [{ "category": "Category", "offset": 30, "length": 7 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Pick Sports for me.",
+    "entities": [{ "category": "Category", "offset": 5, "length": 6 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Show me a Celebrity.",
+    "entities": [{ "category": "Category", "offset": 10, "length": 9 }]
+  },
+  {
+    "intent": "SelectCategory",
+    "language": "en-us",
+    "text": "Random category please.",
+    "entities": [{ "category": "Category", "offset": 0, "length": 6 }]
+  }
+]

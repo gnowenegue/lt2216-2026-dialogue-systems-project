@@ -5,9 +5,7 @@ export const prompts = {
   xmlns="http://www.w3.org/2001/10/synthesis"
   xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="en-US">
   <voice name="en-US-DavisNeural">
-    <mstts:express-as style="excited">
-      hello world!
-    </mstts:express-as>
+    temporary greeting
   </voice>
 </speak>`,
   greeting: `<speak version="1.0"
@@ -38,4 +36,6 @@ export const prompts = {
   </voice>
 </speak>`,
   noInput: "I can't hear you!",
+  invalidCategory:
+    "I didn't quite catch that. Please choose Animal, Celebrity, Country, Sports, or say Random.",
 };

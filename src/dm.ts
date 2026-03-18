@@ -1,53 +1,95 @@
 import { createBrowserInspector } from "@statelyai/inspect";
+import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import type { Hypothesis } from "speechstate";
 import { speechstate } from "speechstate";
-import { assign, createActor, setup, fromPromise } from "xstate";
-import { settings, speechSynthesizer, player } from "./config";
+import { assign, createActor, setup } from "xstate";
+
+import { settings, speechSynthesizer } from "./config";
 import { prompts } from "./prompts";
 import type { DMContext, DMEvents, NLUObject } from "./types";
-import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 
-// const inspector = createBrowserInspector();
-const inspector = createBrowserInspector({
-  filter: (inspectEvent: any) => {
-    if (
-      inspectEvent.type === "@xstate.event" &&
-      !inspectEvent.event?.type.includes("xstate")
-    ) {
-      console.log("🖥️ [DM] Event:", inspectEvent.event);
-    }
-    return true;
-  },
-});
+const inspector = createBrowserInspector();
+// const inspector = createBrowserInspector({
+//   filter: (inspectEvent: any) => {
+//     if (
+//       inspectEvent.type === "@xstate.event" &&
+//       !inspectEvent.event?.type.includes("xstate")
+//     ) {
+//       console.log("🖥️ [DM] Event:", inspectEvent.event);
+//     }
+//     return true;
+//   },
+// });
+
+const audioContext = new AudioContext();
+
+const getCategoryFromNLU = (nluResult: NLUObject | null): string | null => {
+  if (!nluResult) return null;
+
+  const intent = nluResult.topIntent;
+
+  if (!intent || intent !== "SelectCategory") return null;
+
+  const categoryEntity = nluResult.entities.find(
+    (e) => e.category === "Category",
+  );
+  return categoryEntity ? categoryEntity.text : null;
+};
 
 const dmMachine = setup({
   types: {
     context: {} as DMContext,
     events: {} as DMEvents,
   },
-  actors: {
-    speakSSML: fromPromise(async ({ input }: { input: { ssml: string } }) => {
-      return new Promise<void>((resolve, reject) => {
-        speechSynthesizer.speakSsmlAsync(
-          input.ssml,
-          (result) => {
-            if (result.reason === sdk.ResultReason.Canceled) {
-              console.error("⚠️ Speech Synthesis canceled.");
-              console.error("⚠️ Speech Error Details:", result.errorDetails);
-              reject(new Error("Synthesis canceled"));
-            } else {
-              resolve();
-            }
-          },
-          (error) => {
-            console.error("⚠️ Speech synthesis error:", error);
-            reject(error);
-          },
-        );
-      });
-    }),
-  },
+  actors: {},
   actions: {
+    speakSSML: ({ context, self }, params: { ssml: string }) => {
+      speechSynthesizer.speakSsmlAsync(
+        params.ssml,
+        async (result) => {
+          if (result.reason === sdk.ResultReason.Canceled) {
+            console.error("⚠️ Speech Synthesis canceled.");
+            console.error("⚠️ Speech Error Details:", result.errorDetails);
+
+            self.send({ type: "SPEAK_COMPLETE" });
+
+            return;
+          }
+
+          if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
+            try {
+              // ✅ decode the raw audio data from the result directly
+              const audioData = result.audioData;
+              const audioBuffer = await audioContext.decodeAudioData(
+                audioData.slice(0), // slice to get a copy as ArrayBuffer
+              );
+
+              const source = audioContext.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(audioContext.destination);
+
+              // ✅ this is a real, reliable onended
+              source.onended = () => {
+                console.log("✅ source.onended fired → SPEAK_COMPLETE");
+                source.disconnect();
+                self.send({ type: "SPEAK_COMPLETE" });
+              };
+
+              source.start();
+            } catch (err) {
+              console.error("⚠️ Error decoding audio:", err);
+              self.send({ type: "SPEAK_COMPLETE" });
+            }
+          }
+        },
+        (error) => {
+          console.log("❌ speakSsmlAsync error callback:", error);
+          console.error("⚠️ Speech synthesis error:", error);
+
+          self.send({ type: "SPEAK_COMPLETE" });
+        },
+      );
+    },
     "spst.speak": ({ context }, params: { utterance: string }) => {
       if (!params.utterance) return;
       console.log("DM speaking:", params.utterance);
@@ -56,7 +98,7 @@ const dmMachine = setup({
         value: { utterance: params.utterance },
       });
     },
-    "ssml.stop": () => {
+    /* "ssml.stop": () => {
       player.pause();
 
       try {
@@ -68,7 +110,7 @@ const dmMachine = setup({
       } catch (err) {
         console.error("⚠️ Failed to safely clear the audio buffer:", err);
       }
-    },
+    }, */
     "spst.listen": ({ context }, params?: { noInputTimeout?: number }) =>
       context.spstRef.send({
         type: "LISTEN",
@@ -79,28 +121,48 @@ const dmMachine = setup({
             : {}),
         },
       }),
-    "spst.recognised": assign(({ event }) => {
+    "spst.recognised": assign(({ event, context }) => {
       const recognisedEvent = event as {
         type: "RECOGNISED";
         value: Hypothesis[];
         nluValue: NLUObject;
       };
+
+      const utterance = recognisedEvent.value?.[0]?.utterance ?? null;
+
       return {
         lastResult: recognisedEvent.value,
         interpretation: recognisedEvent.nluValue,
+        utterance,
       };
     }),
     "spst.clearTurn": assign({ lastResult: null, interpretation: null }),
     "spst.resetSession": assign({
       lastResult: null,
       interpretation: null,
+      selectedCategory: null,
     }),
+    assignCategory: assign({
+      selectedCategory: ({ context: { interpretation } }) => {
+        return getCategoryFromNLU(interpretation);
+      },
+    }),
+  },
+  guards: {
+    hasValidCategory: ({ context: { interpretation } }) => {
+      return !!getCategoryFromNLU(interpretation);
+    },
+    hasNoInput: ({ context: { utterance } }) => {
+      return !utterance;
+    },
   },
 }).createMachine({
   context: ({ spawn }) => ({
     spstRef: spawn(speechstate, { input: settings }),
     lastResult: null,
     interpretation: null,
+    utterance: null,
+    selectedCategory: null,
   }),
   id: "DM",
   initial: "Prepare",
@@ -120,32 +182,54 @@ const dmMachine = setup({
       entry: "spst.resetSession",
       states: {
         Prompt: {
-          invoke: {
-            src: "speakSSML",
-            input: { ssml: prompts.greetingTemp },
-            onDone: { target: "Ask" },
-            onError: { target: "Ask" },
+          entry: [
+            { type: "speakSSML", params: { ssml: prompts.greetingTemp } },
+          ],
+          on: {
+            SPEAK_COMPLETE: "Listen",
           },
         },
-        Ask: {
+        Listen: {
           entry: [
-            () => console.log("Entering Ask state"),
+            () => console.log("Entering Listen state"),
             { type: "spst.listen" },
           ],
           on: {
-            ASR_NOINPUT: { actions: "spst.clearTurn", target: "NoInput" },
-            LISTEN_COMPLETE: { target: "Done" },
+            ASR_NOINPUT: { actions: "spst.clearTurn" },
+            LISTEN_COMPLETE: { target: "CheckCategory" },
           },
+        },
+        CheckCategory: {
+          always: [
+            {
+              guard: "hasValidCategory",
+              target: "Done",
+              actions: "assignCategory",
+            },
+            { guard: "hasNoInput", target: "NoInput" },
+            { target: "InvalidCategory" },
+          ],
+        },
+        InvalidCategory: {
+          entry: {
+            type: "spst.speak",
+            params: { utterance: prompts.invalidCategory },
+          },
+          on: { SPEAK_COMPLETE: "Listen" },
         },
         NoInput: {
           entry: { type: "spst.speak", params: { utterance: prompts.noInput } },
-          on: { SPEAK_COMPLETE: "Ask" },
+          on: { SPEAK_COMPLETE: "Listen" },
         },
         Done: {
           type: "final",
         },
       },
-      onDone: "Done",
+      onDone: "Game",
+    },
+    Game: {
+      entry: () => console.log("In Game state..."),
+      on: { CLICK: "Greeting" },
     },
     Done: {
       on: { CLICK: "Greeting" },

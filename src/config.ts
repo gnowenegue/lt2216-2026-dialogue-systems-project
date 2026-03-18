@@ -12,8 +12,8 @@ const azureLanguageCredentials = {
   endpoint:
     "https://lt2216.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2024-11-15-preview",
   key: NLU_KEY,
-  deploymentName: "Lab-5",
-  projectName: "Lab-5",
+  deploymentName: "project",
+  projectName: "project",
 };
 
 export const settings: Settings = {
@@ -26,11 +26,11 @@ export const settings: Settings = {
   ttsDefaultVoice: "en-US-DavisNeural",
 };
 
-const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
-export const player = new sdk.SpeakerAudioDestination();
-export const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
+export const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
+// export const player = new sdk.SpeakerAudioDestination();
+// export const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
 export const speechSynthesizer = new sdk.SpeechSynthesizer(
   speechConfig,
-  audioConfig,
+  null,
 );
 

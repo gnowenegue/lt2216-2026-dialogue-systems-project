@@ -5,6 +5,10 @@ export interface DMContext {
   spstRef: ActorRef<any, any>;
   lastResult: Hypothesis[] | null;
   interpretation: NLUObject | null;
+
+  utterance: string | null;
+
+  selectedCategory: string | null;
 }
 
 export type DMEvents =
