@@ -24,14 +24,25 @@
     <div id="app" class="p-8 mx-auto text-center max-w-7xl">
       <div>
         <div class="p-8">
-          <button
-            id="game"
-            type="button"
-            disabled
-            class="rounded-lg border border-transparent bg-slate-50 px-5 py-2.5 text-base font-medium transition-colors duration-300 ease-in-out enabled:cursor-pointer enabled:hover:border-indigo-500 enabled:hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-900 dark:enabled:hover:border-indigo-500 dark:enabled:hover:text-indigo-500"
-          >
-            Loading Game...
-          </button>
+          <div>
+            <button
+              id="game"
+              type="button"
+              disabled
+              class="rounded-lg border border-transparent bg-slate-50 px-5 py-2.5 text-base font-medium transition-colors duration-300 ease-in-out enabled:cursor-pointer enabled:hover:border-indigo-500 enabled:hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-900 dark:enabled:hover:border-indigo-500 dark:enabled:hover:text-indigo-500"
+            >
+              Loading Game...
+            </button>
+          </div>
+          <div>
+            <button
+              id="skip"
+              type="button"
+              class="hidden rounded-lg border border-transparent bg-slate-50 px-5 py-2.5 text-base font-medium transition-colors duration-300 ease-in-out enabled:cursor-pointer enabled:hover:border-indigo-500 enabled:hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-900 dark:enabled:hover:border-indigo-500 dark:enabled:hover:text-indigo-500"
+            >
+              Skip Introduction
+            </button>
+          </div>
           <div
             id="rules"
             class="hidden max-w-md p-6 mx-auto mt-8 text-sm text-left border shadow-sm rounded-xl border-slate-200 bg-slate-50 text-slate-700 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-slate-300"
@@ -55,7 +66,11 @@
             id="spst-meta"
             class="mt-4 text-lg font-semibold transition-opacity text-slate-700 dark:text-slate-300"
           >
-            Mic Status: <span class="italic value">Off</span>
+            Mic Status:
+            <span
+              class="italic text-red-500 transition-colors duration-300 ease-in-out value"
+              >Off</span
+            >
           </p>
           <p
             id="questions-remaining"

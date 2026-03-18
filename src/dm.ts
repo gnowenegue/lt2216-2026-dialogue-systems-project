@@ -10,8 +10,12 @@ import type { DMContext, DMEvents, GroqResponse, NLUObject } from "./types";
 import words from "./words";
 
 const audioContext = new AudioContext();
+let currentAudioSource: AudioBufferSourceNode | null = null;
+let playbackCancelled = false;
 
 const playSSML = (ssml: string, onComplete: () => void) => {
+  playbackCancelled = false;
+
   speechSynthesizer.speakSsmlAsync(
     ssml,
     async (result) => {
@@ -29,13 +33,20 @@ const playSSML = (ssml: string, onComplete: () => void) => {
             audioData.slice(0),
           );
 
+          if (playbackCancelled) {
+            onComplete();
+            return;
+          }
+
           const source = audioContext.createBufferSource();
           source.buffer = audioBuffer;
           source.connect(audioContext.destination);
+          currentAudioSource = source;
 
           source.onended = () => {
             console.log("✅ source.onended fired → SPEAK_COMPLETE");
             source.disconnect();
+            if (currentAudioSource === source) currentAudioSource = null;
             onComplete();
           };
 
@@ -70,8 +81,14 @@ const getCategoryFromNLU = (nluResult: NLUObject | null): string | null => {
 const generateSecretWord = (category: string | null): string | null => {
   if (!category) return null;
 
-  const categoryKey = category.toLowerCase() as keyof typeof words;
-  const categoryWords = words[categoryKey];
+  const categoryKey = category.toLowerCase();
+  let categoryWords: string[];
+
+  if (categoryKey === "random") {
+    categoryWords = Object.values(words).flat();
+  } else {
+    categoryWords = words[categoryKey as keyof typeof words];
+  }
 
   if (!categoryWords || categoryWords.length === 0) return null;
 
@@ -139,6 +156,17 @@ export const dmMachine = setup({
         type: "SPEAK",
         value: { utterance: params.utterance },
       });
+    },
+    stopAudio: () => {
+      playbackCancelled = true;
+      if (currentAudioSource) {
+        currentAudioSource.onended = null; // Prevent duplicate SPEAK_COMPLETE
+        try {
+          currentAudioSource.stop();
+        } catch (e) {}
+        currentAudioSource.disconnect();
+        currentAudioSource = null;
+      }
     },
     /* "ssml.stop": () => {
       player.pause();
@@ -226,6 +254,9 @@ export const dmMachine = setup({
     isInvalidIntent: ({ context: { questionStatus } }) => {
       return questionStatus?.intent === "INVALID_INTENT";
     },
+    isGuessCorrect: ({ context: { questionStatus } }) => {
+      return !!questionStatus?.is_correct_guess;
+    },
     isGameOver: ({ context: { questionsRemaining } }) => {
       return questionsRemaining <= 0;
     },
@@ -259,7 +290,9 @@ export const dmMachine = setup({
       entry: "spst.resetSession",
       states: {
         Prompt: {
-          entry: { type: "speakSSML", params: { ssml: prompts.greetingTemp } },
+          // entry: { type: "speakSSML", params: { ssml: prompts.greetingTemp } },
+          entry: { type: "speakSSML", params: { ssml: prompts.greeting } },
+          exit: "stopAudio",
           on: {
             SPEAK_COMPLETE: "Listen",
           },
@@ -389,7 +422,12 @@ export const dmMachine = setup({
               }),
             },
           ],
-          on: { SPEAK_COMPLETE: "CheckQuestionsRemaining" },
+          on: {
+            SPEAK_COMPLETE: [
+              { guard: "isGuessCorrect", target: "GameOver" },
+              { target: "CheckQuestionsRemaining" },
+            ],
+          },
         },
         HandleInvalidIntent: {
           entry: {

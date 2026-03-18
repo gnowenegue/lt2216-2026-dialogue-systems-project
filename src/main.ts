@@ -28,6 +28,7 @@ dmActor.subscribe((snapshot) => {
 });
 
 const gameButton = document.getElementById("game");
+const skipButton = document.getElementById("skip");
 
 const speechStateMeta = document.getElementById("spst-meta");
 const speechStateMetaValue = speechStateMeta?.querySelector("span");
@@ -43,46 +44,61 @@ gameButton?.addEventListener("click", () => {
   gameButton.classList.add("hidden");
 });
 
+skipButton?.addEventListener("click", () => {
+  dmActor.send({ type: "SPEAK_COMPLETE" });
+});
+
 let gameLoaded = false;
 
 dmActor.subscribe((snapshot) => {
-  const spstSnap = snapshot.context.spstRef.getSnapshot();
+  const { context } = snapshot;
+  const spstSnap = context.spstRef.getSnapshot();
 
   const metaValues = Object.values(
     spstSnap.getMeta() as Record<string, { view?: string }>,
   );
-  const meta = metaValues[0];
+  const metaView = metaValues[0]?.view;
 
-  if (!gameLoaded && meta.view === "idle") {
+  // 1. Initial Load State
+  if (!gameLoaded && metaView === "idle" && gameButton) {
     gameLoaded = true;
-    gameButton!.innerText = "Start Game";
-    gameButton?.attributes.removeNamedItem("disabled");
+    gameButton.innerText = "Start Game";
+    gameButton.removeAttribute("disabled"); // Much cleaner than attributes.removeNamedItem
   }
 
-  if (meta.view === "recognising") {
-    speechStateMetaValue!.innerText = "You can speak now";
+  // 2. Update Mic Status Text
+  const statusMessages: Record<string, string> = {
+    recognising: "You can speak now",
+    speaking: "Hold on...",
+    idle: "Off",
+  };
+
+  if (metaView && statusMessages[metaView] && speechStateMetaValue) {
+    speechStateMetaValue.innerText = statusMessages[metaView];
+    speechStateMetaValue.classList.toggle(
+      "text-green-500",
+      metaView === "recognising",
+    );
+    speechStateMetaValue.classList.toggle(
+      "text-red-500",
+      metaView !== "recognising",
+    );
   }
 
-  if (meta.view === "speaking") {
-    speechStateMetaValue!.innerText = "Hold on...";
+  // 3. Update Questions Counter
+  if (questionsRemainingValue) {
+    questionsRemainingValue.innerText = context.questionsRemaining.toString();
   }
 
-  questionsRemainingValue!.innerText =
-    snapshot.context.questionsRemaining.toString();
+  // 4. Manage UI Visibility
+  questionsRemaining?.classList.toggle("hidden", !snapshot.matches("Game"));
+  rules?.classList.toggle(
+    "hidden",
+    !(snapshot.matches("Greeting") || snapshot.matches("Game")),
+  );
+  skipButton?.classList.toggle("hidden", !snapshot.matches({ Greeting: "Prompt" }));
 
-  if (snapshot.matches("Game")) {
-    questionsRemaining?.classList.remove("hidden");
-  } else {
-    questionsRemaining?.classList.add("hidden");
-  }
-
-  if (snapshot.matches("Greeting") || snapshot.matches("Game")) {
-    rules?.classList.remove("hidden");
-  } else {
-    rules?.classList.add("hidden");
-  }
-
-  if (snapshot.matches({ Greeting: "Prompt" })) {
+  if (snapshot.matches("Done")) {
     gameButton?.classList.remove("hidden");
   }
 });
