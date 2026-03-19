@@ -19,10 +19,16 @@ export type DMEvents =
   | { type: "CLICK" }
   | { type: "DONE" };
 
+export interface ExtraInformation {
+  extraInformationKind: string;
+  key: string;
+}
+
 export interface Entity {
   category: string;
   text: string;
   confidenceScore: number;
+  extraInformation: ExtraInformation[];
 }
 
 export interface Intent {

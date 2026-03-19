@@ -65,6 +65,15 @@ const playSSML = (ssml: string, onComplete: () => void) => {
   );
 };
 
+/* const getCategory = (
+  nluResult: NLUObject | null,
+  utterance: string,
+): string | null => {
+  if (nluResult) return getCategoryFromNLU(nluResult);
+
+  return null;
+}; */
+
 const getCategoryFromNLU = (nluResult: NLUObject | null): string | null => {
   if (!nluResult) return null;
 
@@ -75,7 +84,16 @@ const getCategoryFromNLU = (nluResult: NLUObject | null): string | null => {
   const categoryEntity = nluResult.entities.find(
     (e) => e.category === "Category",
   );
-  return categoryEntity ? categoryEntity.text : null;
+
+  const extraInformation = categoryEntity?.extraInformation;
+
+  if (!extraInformation) return null;
+
+  const category = extraInformation.find(
+    (e) => e.extraInformationKind === "ListKey",
+  )?.key;
+
+  return category ?? null;
 };
 
 const generateSecretWord = (category: string | null): string | null => {
