@@ -91,6 +91,15 @@
             </button>
           </div>
           <p
+            id="instruction"
+            class="hidden mt-4 font-semibold transition-opacity text-slate-700 dark:text-slate-300"
+          >
+            Instruction:
+            <span
+              class="text-indigo-500 transition-colors duration-300 ease-in-out value"
+            ></span>
+          </p>
+          <p
             id="spst-meta"
             class="mt-4 font-semibold transition-opacity text-slate-700 dark:text-slate-300"
           >
@@ -102,7 +111,7 @@
           </p>
           <form
             id="text-fallback-form"
-            class="flex max-w-md gap-2 mx-auto mt-6"
+            class="flex hidden max-w-md gap-2 mx-auto mt-6"
           >
             <input
               id="text-input"

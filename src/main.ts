@@ -45,6 +45,11 @@ const questionsRemainingValue =
 
 const rules = document.getElementById("rules") as HTMLDivElement;
 
+const instruction = document.getElementById(
+  "instruction",
+) as HTMLParagraphElement;
+const instructionValue = instruction.querySelector<HTMLSpanElement>("span");
+
 const textFallbackForm = document.getElementById(
   "text-fallback-form",
 ) as HTMLFormElement;
@@ -140,7 +145,20 @@ dmActor.subscribe((snapshot) => {
     !snapshot.matches({ Greeting: "Prompt" }),
   );
 
+  textFallbackForm.classList.toggle("hidden", !snapshot.matches("Game"));
+
   if (snapshot.matches("Done")) {
     gameButton.classList.remove("hidden");
+  }
+
+  if (snapshot.matches("Greeting")) {
+    instruction.classList.remove("hidden");
+    instructionValue!.innerText =
+      "Say your category: Animal, Celebrity, Country, Sports, or Random";
+  } else if (snapshot.matches("Game")) {
+    instruction.classList.remove("hidden");
+    instructionValue!.innerText = "Ask or type your question";
+  } else {
+    instruction.classList.add("hidden");
   }
 });
