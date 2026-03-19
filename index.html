@@ -23,10 +23,15 @@
     ></div>
     <div id="app" class="p-8 mx-auto text-center max-w-7xl">
       <!-- Logo Section -->
-      <div class="relative flex items-center justify-center mx-auto mb-10 w-max">
+      <div class="relative flex items-center justify-center mx-auto w-max">
         <svg width="0" height="0" class="absolute pointer-events-none">
           <filter id="svg-outline">
-            <feMorphology in="SourceAlpha" result="expanded" operator="dilate" radius="5" />
+            <feMorphology
+              in="SourceAlpha"
+              result="expanded"
+              operator="dilate"
+              radius="5"
+            />
             <feFlood flood-color="white" />
             <feComposite in2="expanded" operator="in" />
             <feMerge>
@@ -38,12 +43,15 @@
         <img
           src="/logo.svg"
           alt="Game Logo"
-          class="relative w-96 h-96 transition-transform duration-500 ease-in-out hover:scale-105"
-          style="filter: url(#svg-outline) drop-shadow(0px 4px 6px rgba(0,0,0,0.3));"
+          class="relative transition-transform duration-500 ease-in-out w-96 h-96 hover:scale-105"
+          style="
+            filter: url(#svg-outline)
+              drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3));
+          "
         />
       </div>
       <div>
-        <div class="p-8">
+        <div class="p-8 pt-0">
           <div>
             <button
               id="game"
@@ -94,16 +102,18 @@
           </p>
           <form
             id="text-fallback-form"
-            class="flex hidden max-w-md gap-2 mx-auto mt-6"
+            class="flex max-w-md gap-2 mx-auto mt-6"
           >
             <input
               id="text-input"
+              disabled
               type="text"
               placeholder="Type your guess or question..."
               class="w-full px-4 py-2 text-sm border rounded-lg shadow-sm bg-slate-50 border-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white dark:placeholder-zinc-500 dark:focus:ring-indigo-500/40"
             />
             <button
               id="text-submit"
+              disabled
               type="submit"
               class="px-5 py-2 text-sm font-medium text-white transition-colors duration-300 ease-in-out bg-indigo-500 rounded-lg shadow-sm hover:bg-indigo-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
