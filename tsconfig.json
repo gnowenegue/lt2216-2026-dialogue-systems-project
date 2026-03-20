@@ -16,6 +16,11 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
 
+    "paths": {
+      "$lib/*": ["./src/lib/*"],
+      "$components/*": ["./src/components/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

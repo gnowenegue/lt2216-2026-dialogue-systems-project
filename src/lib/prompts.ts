@@ -42,7 +42,9 @@ export const prompts = {
     `You've selected the category ${category}.`,
   secretWordGenerated:
     "I've generated a secret word. You may begin to ask questions!",
-  systemPrompt: (secretWord: string) => `You are the host of a 20 Questions game.
+  systemPrompt: (
+    secretWord: string,
+  ) => `You are the host of a 20 Questions game.
 The secret word is "${secretWord}".
 The user will ask a yes/no question or make a guess.
 Respond strictly in JSON format with the following schema:

@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@layer base {
+  body {
+    @apply m-0 flex min-h-screen min-w-[320px] place-items-center bg-white text-slate-800 antialiased dark:bg-zinc-800 dark:text-white/90 font-sans;
+  }
+
+  #app {
+    @apply w-full;
+  }
+}

@@ -1,5 +1,6 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import type { Settings } from "speechstate";
+
 import { KEY, NLU_KEY } from "./azure";
 
 const azureCredentials = {
@@ -30,9 +31,6 @@ export const settings: Settings = {
 const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
 // export const player = new sdk.SpeakerAudioDestination();
 // export const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
-export const speechSynthesizer = new sdk.SpeechSynthesizer(
-  speechConfig,
-  null,
-);
+export const speechSynthesizer = new sdk.SpeechSynthesizer(speechConfig, null);
 
 export const totalQuestionsAllowed = 20;
