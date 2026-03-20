@@ -15,12 +15,16 @@
   "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be",
   "dependencies": {
     "@statelyai/inspect": "^0.4.0",
+    "@xstate/svelte": "^5.0.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.48.0",
     "speechstate": "^2.15.0",
+    "svelte": "^5.54.0",
     "xstate": "^5.28.0"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tailwindcss/vite": "^4.2.1",
+    "svelte-check": "^4.4.5",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.0"
