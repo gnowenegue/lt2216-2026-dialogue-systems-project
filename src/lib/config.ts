@@ -33,4 +33,11 @@ const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
 // export const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
 export const speechSynthesizer = new sdk.SpeechSynthesizer(speechConfig, null);
 
-export const totalQuestionsAllowed = 20;
+const getQuestionsFromUrl = () => {
+  if (typeof window === "undefined") return 20;
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get("q");
+  return q && !isNaN(parseInt(q)) ? parseInt(q) : 20;
+};
+
+export const totalQuestionsAllowed = getQuestionsFromUrl();

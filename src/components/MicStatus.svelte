@@ -8,7 +8,7 @@
 </script>
 
 <p
-  class="mt-4 font-semibold transition-opacity text-slate-700 dark:text-slate-300"
+  class="mt-4 font-semibold transition-opacity transition-discrete text-slate-700 dark:text-slate-300"
 >
   Mic Status:
   <span

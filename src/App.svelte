@@ -1,74 +1,93 @@
 <script lang="ts">
-  import { createBrowserInspector } from "@statelyai/inspect";
-
   import { createGame } from "$lib/game.svelte";
 
+  import { createBrowserInspector } from "@statelyai/inspect";
+
+  import Answer from "$components/Answer.svelte";
   import Button from "$components/Button.svelte";
   import ChatForm from "$components/ChatForm.svelte";
+  import GameStatus from "$components/GameStatus.svelte";
+  import Instruction from "$components/Instruction.svelte";
   import Logo from "$components/Logo.svelte";
+  import Logs from "$components/Logs.svelte";
   import MicStatus from "$components/MicStatus.svelte";
   import Rules from "$components/Rules.svelte";
 
   const inspector = createBrowserInspector();
   const game = createGame(inspector.inspect);
 
+  let {
+    isGameLoaded,
+    isRecognising,
+    showForm,
+    showGameButton,
+    showGameStatus,
+    showInstruction,
+    showLogs,
+    showQuestionsRemaining,
+    showRules,
+    showSecretWord,
+    showSkipButton,
+  } = $derived(game.conditions);
+
+  let { instructionHTML, statusText, secretWord, gameWon } = $derived(
+    game.values,
+  );
+
   // Still logging for convenience in dev
   $effect(() => {
     console.group("State update");
-    console.log("DM State:", $state.snapshot(game.view.snapshot.value));
-    console.log("DM Context:", $state.snapshot(game.view.snapshot.context));
+    console.log("DM State:", $state.snapshot(game.state.value));
+    console.log("DM Context:", $state.snapshot(game.state.context));
     console.groupEnd();
   });
 </script>
 
-<div class="p-8 mx-auto text-center max-w-7xl">
+<div class="px-4 mx-auto text-center max-w-7xl">
   <Logo />
 
-  <div class="p-8 pt-0">
-    {#if game.view.showGameButton}
-      <Button disabled={!game.view.gameLoaded} onclick={game.actions.start}>
-        {game.view.gameLoaded ? "Start Game" : "Loading Game..."}
-      </Button>
-    {/if}
+  {#if showGameButton}
+    <Button disabled={!isGameLoaded} onclick={game.actions.start}>
+      {isGameLoaded ? "Start Game" : "Loading Game..."}
+    </Button>
+  {/if}
 
-    {#if game.view.showRules}
-      <Rules />
-    {/if}
+  {#if showRules}
+    <Rules />
+  {/if}
 
-    {#if game.view.showSkip}
-      <div class="mt-4">
-        <Button onclick={game.actions.skip}>Skip Introduction</Button>
-      </div>
-    {/if}
+  {#if showInstruction}
+    <Instruction instruction={instructionHTML} />
+  {/if}
 
-    {#if game.view.showInstruction}
-      <p class="mt-4 font-semibold text-slate-700 dark:text-slate-300">
-        Instruction:
-        <span class="text-indigo-500">
-          {@html game.view.instructionHTML}
-        </span>
-      </p>
-    {/if}
+  {#if showSkipButton}
+    <Button onclick={game.actions.skip}>Skip Introduction</Button>
+  {/if}
 
-    <MicStatus
-      isRecognising={game.view.isRecognising}
-      statusText={game.view.statusText}
-    />
+  {#if showLogs}
+    <Logs logs={game.state.context.logs} />
+  {/if}
 
-    {#if game.view.showForm}
-      <ChatForm
-        isRecognising={game.view.isRecognising}
-        onSubmit={game.actions.submitText}
-      />
-    {/if}
+  <MicStatus {isRecognising} {statusText} />
 
-    {#if game.view.snapshot.matches("Game")}
-      <h3 class="mt-4 text-lg font-semibold text-slate-700 dark:text-slate-300">
-        Questions Remaining:
-        <span class="font-extrabold text-indigo-500">
-          {game.view.snapshot.context.questionsRemaining}
-        </span>
-      </h3>
-    {/if}
-  </div>
+  {#if showForm}
+    <ChatForm {isRecognising} onSubmit={game.actions.submitText} />
+  {/if}
+
+  {#if showQuestionsRemaining}
+    <h3 class="mt-4 text-lg font-semibold text-slate-700 dark:text-slate-300">
+      Questions Remaining:
+      <span class="font-extrabold text-indigo-500">
+        {game.state.context.questionsRemaining}
+      </span>
+    </h3>
+  {/if}
+
+  <!-- {#if showSecretWord}
+    <Answer {secretWord} />
+  {/if} -->
+
+  {#if gameWon !== null}
+    <GameStatus {gameWon} {secretWord} onReset={game.actions.reset} />
+  {/if}
 </div>

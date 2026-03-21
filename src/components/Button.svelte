@@ -1,20 +1,33 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-
   interface Props {
+    type?: "button" | "submit" | "reset";
+    variant?: "primary" | "outline";
     disabled?: boolean;
     onclick?: () => void;
     children?: Snippet;
   }
 
-  let { disabled = false, onclick, children }: Props = $props();
+  let {
+    type = "button",
+    variant = "outline",
+    disabled = false,
+    onclick,
+    children,
+  }: Props = $props();
+
+  const baseClasses =
+    "rounded-lg px-5 py-2.5 text-sm font-medium transition-colors duration-300 ease-in-out focus:outline-none disabled:cursor-not-allowed disabled:opacity-50";
+  const primaryClasses = "bg-indigo-500 text-white shadow-sm hover:bg-indigo-600";
+  const outlineClasses =
+    "border border-transparent bg-slate-50 text-base enabled:cursor-pointer enabled:hover:border-indigo-500 enabled:hover:text-indigo-500 dark:bg-slate-900 dark:enabled:hover:border-indigo-500 dark:enabled:hover:text-indigo-500";
 </script>
 
 <button
-  type="button"
+  {type}
   {disabled}
   {onclick}
-  class="rounded-lg border border-transparent bg-slate-50 px-5 py-2.5 text-base font-medium transition-colors duration-300 ease-in-out enabled:cursor-pointer enabled:hover:border-indigo-500 enabled:hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-900 dark:enabled:hover:border-indigo-500 dark:enabled:hover:text-indigo-500"
+  class="{baseClasses} {variant === 'primary' ? primaryClasses : outlineClasses}"
 >
   {@render children?.()}
 </button>

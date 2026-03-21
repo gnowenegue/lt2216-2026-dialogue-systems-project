@@ -65,15 +65,6 @@ const playSSML = (ssml: string, onComplete: () => void) => {
   );
 };
 
-/* const getCategory = (
-  nluResult: NLUObject | null,
-  utterance: string,
-): string | null => {
-  if (nluResult) return getCategoryFromNLU(nluResult);
-
-  return null;
-}; */
-
 const getCategoryFromNLU = (nluResult: NLUObject | null): string | null => {
   if (!nluResult) return null;
 
@@ -237,11 +228,19 @@ export const dmMachine = setup({
       secretWord: null,
       questionStatus: null,
       questionsRemaining: totalQuestionsAllowed,
+      gameWon: null,
+      logs: [],
     }),
     assignCategory: assign({
       selectedCategory: ({ context: { interpretation } }) => {
         return getCategoryFromNLU(interpretation);
       },
+      /* logs: ({ context: { logs, interpretation } }) => {
+        return [
+          ...logs,
+          `You have selected the category: ${getCategoryFromNLU(interpretation)}`,
+        ];
+      }, */
     }),
     assignSecretWord: assign({
       secretWord: ({ context: { selectedCategory } }) => {
@@ -251,6 +250,16 @@ export const dmMachine = setup({
     decrementQuestionsRemaining: assign({
       questionsRemaining: ({ context: { questionsRemaining } }) =>
         questionsRemaining - 1,
+    }),
+    assignGameWon: assign({
+      gameWon: ({ context: { questionStatus } }) => {
+        return !!questionStatus?.is_correct_guess;
+      },
+    }),
+    addLog: assign({
+      logs: ({ context }, params: { log: string }) => {
+        return [...context.logs, params.log];
+      },
     }),
   },
   guards: {
@@ -289,11 +298,14 @@ export const dmMachine = setup({
     secretWord: null,
     questionStatus: null,
     questionsRemaining: totalQuestionsAllowed,
+    gameWon: null,
+    logs: [],
   }),
   id: "DM",
   initial: "Prepare",
   on: {
     RECOGNISED: { actions: "spst.recognised" },
+    RESET: { target: ".Greeting", actions: "stopAudio" },
   },
   states: {
     Prepare: {
@@ -327,7 +339,15 @@ export const dmMachine = setup({
             {
               guard: "hasValidCategory",
               target: "Done",
-              actions: "assignCategory",
+              actions: [
+                "assignCategory",
+                {
+                  type: "addLog",
+                  params: ({ context: { selectedCategory } }) => ({
+                    log: `You have selected the category: ${selectedCategory?.toUpperCase()}`,
+                  }),
+                },
+              ],
             },
             { guard: "hasNoInput", target: "NoInput" },
             { target: "InvalidCategory" },
@@ -376,7 +396,7 @@ export const dmMachine = setup({
           on: { SPEAK_COMPLETE: "Listen" },
         },
         Listen: {
-          entry: { type: "spst.listen" },
+          entry: { type: "spst.listen", params: { noInputTimeout: 10000 } },
           on: {
             ASR_NOINPUT: { actions: "spst.clearTurn" },
             LISTEN_COMPLETE: { target: "CheckInput" },
@@ -409,37 +429,62 @@ export const dmMachine = setup({
           },
         },
         ProcessQuestion: {
-          entry: ({ context }) => {
-            console.log("Question Status:", context.questionStatus);
-          },
+          entry: [
+            ({ context }) => {
+              console.log("Question Status:", context.questionStatus);
+            },
+            {
+              type: "addLog",
+              params: ({ context: { utterance } }) => ({
+                log: `You asked: ${utterance}`,
+              }),
+            },
+          ],
           always: [
-            { target: "HandleAskingQuestion", guard: "isAskingQuestion" },
-            { target: "HandleGuessingWord", guard: "isGuessingWord" },
+            {
+              target: "HandleAskingQuestion",
+              guard: "isAskingQuestion",
+              actions: "decrementQuestionsRemaining",
+            },
+            {
+              target: "HandleGuessingWord",
+              guard: "isGuessCorrect",
+              actions: ["decrementQuestionsRemaining", "assignGameWon"],
+            },
+            {
+              target: "HandleGuessingWord",
+              guard: "isGuessingWord",
+              actions: "decrementQuestionsRemaining",
+            },
             { target: "HandleInvalidIntent" },
           ],
         },
         HandleAskingQuestion: {
-          entry: [
-            "decrementQuestionsRemaining",
-            {
-              type: "spst.speak",
-              params: ({ context: { questionStatus } }) => ({
-                utterance: `${questionStatus?.answer}. ${questionStatus?.explanation}`,
-              }),
-            },
-          ],
+          entry: {
+            type: "spst.speak",
+            params: ({ context: { questionStatus } }) => ({
+              utterance: `${questionStatus?.answer}. ${questionStatus?.explanation}`,
+            }),
+          },
+
           on: { SPEAK_COMPLETE: "CheckQuestionsRemaining" },
         },
-        HandleGuessingWord: {
-          entry: [
-            "decrementQuestionsRemaining",
+        /* CheckGuessingWord: {
+          always: [
             {
-              type: "spst.speak",
-              params: ({ context: { questionStatus } }) => ({
-                utterance: questionStatus?.explanation ?? "",
-              }),
+              guard: "isGuessCorrect",
+              actions: "assignGameWon",
+              target: "HandleGuessingWord",
             },
           ],
+        }, */
+        HandleGuessingWord: {
+          entry: {
+            type: "spst.speak",
+            params: ({ context: { questionStatus } }) => ({
+              utterance: questionStatus?.explanation ?? "",
+            }),
+          },
           on: {
             SPEAK_COMPLETE: [
               { guard: "isGuessCorrect", target: "GameOver" },
@@ -460,6 +505,7 @@ export const dmMachine = setup({
           always: [
             {
               guard: "isGameOver",
+              actions: "assignGameWon",
               target: "GameOver",
             },
             "Listen",
@@ -470,7 +516,12 @@ export const dmMachine = setup({
             type: "spst.speak",
             params: { utterance: "Game over! Thanks for playing!" },
           },
-          on: { SPEAK_COMPLETE: "Done" },
+          on: { SPEAK_COMPLETE: "Delay" },
+        },
+        Delay: {
+          after: {
+            3000: "Done",
+          },
         },
         Done: {
           type: "final",
@@ -479,6 +530,7 @@ export const dmMachine = setup({
       onDone: "Done",
     },
     Done: {
+      entry: "spst.resetSession",
       on: { CLICK: "Greeting" },
     },
   },

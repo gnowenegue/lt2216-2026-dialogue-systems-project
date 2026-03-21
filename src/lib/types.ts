@@ -12,12 +12,16 @@ export interface DMContext {
   secretWord: string | null;
   questionStatus: GroqResponse | null;
   questionsRemaining: number;
+  gameWon: boolean | null;
+
+  logs: string[];
 }
 
 export type DMEvents =
   | SpeechStateExternalEvent
   | { type: "CLICK" }
-  | { type: "DONE" };
+  | { type: "DONE" }
+  | { type: "RESET" };
 
 export interface ExtraInformation {
   extraInformationKind: string;

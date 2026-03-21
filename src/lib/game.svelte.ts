@@ -8,7 +8,7 @@ export const createGame = (inspector: any) => {
     inspect: inspector,
   }).start();
 
-  // Create a reactive state for the machine snapshot
+  // 1. Raw State (The Source of Truth)
   let snapshot = $state(dmActor.getSnapshot());
 
   dmActor.subscribe((newSnapshot) => {
@@ -18,13 +18,11 @@ export const createGame = (inspector: any) => {
   // Derived internal logic for child actors (SpeechState)
   const spstRef = $derived(snapshot.context.spstRef);
 
-  // We use a separate state to track the child actor's snapshot reactively
   let spstSnapshot = $state(
     dmActor.getSnapshot().context.spstRef.getSnapshot(),
   );
 
   $effect(() => {
-    // When spstRef changes (e.g., machine restart), resubscribe
     const sub = spstRef.subscribe((s) => {
       spstSnapshot = s;
     });
@@ -45,27 +43,42 @@ export const createGame = (inspector: any) => {
     idle: "Off",
   };
 
-  // The "ViewModel" - purely derived state for the UI
-  const view = $derived({
-    snapshot, // Expose for .matches() and .context
+  const conditions = $derived({
+    isGameLoaded: !snapshot.matches("Prepare"),
     isRecognising,
-    statusText: statusMessages[metaView ?? "idle"] || "Off",
-    gameLoaded: !snapshot.matches("Prepare"),
-    showGameButton:
-      !snapshot.matches("Prepare") &&
-      (snapshot.matches("WaitToStart") || snapshot.matches("Done")),
-    showRules: snapshot.matches("Greeting") || snapshot.matches("Game"),
-    showSkip: snapshot.matches({ Greeting: "Prompt" }),
     showForm: snapshot.matches("Game"),
+    showGameButton: !(snapshot.matches("Greeting") || snapshot.matches("Game")),
     showInstruction: snapshot.matches("Greeting") || snapshot.matches("Game"),
+    showLogs: snapshot.matches("Game"),
+    showQuestionsRemaining: snapshot.matches("Game"),
+    showRules: snapshot.matches("Greeting") || snapshot.matches("Game"),
+    showGameStatus:
+      snapshot.matches({ Game: "GameOver" }) ||
+      snapshot.matches({ Game: "Delay" }),
+    showSecretWord:
+      snapshot.matches({
+        Game: "GameOver",
+      }) ||
+      snapshot.matches({
+        Game: "Delay",
+      }) ||
+      snapshot.matches("Done"),
+    showSkipButton: snapshot.matches({
+      Greeting: "Prompt",
+    }),
+  });
+
+  const values = $derived({
+    statusText: statusMessages[metaView ?? "idle"] || "Off",
     instructionHTML: snapshot.matches("Greeting")
       ? "Choose your category: <br /><span class='font-extrabold text-indigo-400 uppercase'>Animal, Celebrity, Country, Sports, or Random</span>"
       : snapshot.matches("Game")
         ? "Ask or type your question"
         : "",
+    gameWon: snapshot.context.gameWon,
+    secretWord: snapshot.context.secretWord,
   });
 
-  // Encapsulated Actions
   const actions = {
     start: () => dmActor.send({ type: "CLICK" }),
     skip: () => dmActor.send({ type: "SPEAK_COMPLETE" }),
@@ -83,12 +96,18 @@ export const createGame = (inspector: any) => {
         dmActor.send({ type: "LISTEN_COMPLETE" });
       }
     },
+    reset: () => dmActor.send({ type: "RESET" }),
   };
 
   return {
-    // We return getters to ensure reactivity works across file boundaries in Svelte 5
-    get view() {
-      return view;
+    get state() {
+      return snapshot;
+    },
+    get conditions() {
+      return conditions;
+    },
+    get values() {
+      return values;
     },
     get actions() {
       return actions;

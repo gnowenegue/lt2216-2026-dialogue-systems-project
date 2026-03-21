@@ -2,7 +2,7 @@
 </script>
 
 <div
-  class="relative flex items-center justify-center mx-auto -mb-10 w-max -z-10"
+  class="relative flex items-center justify-center mx-auto -my-12 w-max -z-10"
 >
   <svg width="0" height="0" class="absolute pointer-events-none">
     <filter id="svg-outline">
@@ -22,8 +22,8 @@
   </svg>
   <img
     src="/logo.svg"
-    alt="Game Logo"
-    class="relative transition-transform duration-500 ease-in-out w-96 h-96 hover:scale-105"
+    alt="20-Question Game Logo"
+    class="w-80 h-80"
     style="filter: url(#svg-outline) drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3));"
   />
 </div>
