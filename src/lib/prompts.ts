@@ -1,5 +1,12 @@
 import { NGROK_URL } from "./azure";
 
+export const ssmlWrapper = (
+  utterance: string,
+  style: string = "chat",
+  rate: string = "1.1",
+) =>
+  `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="en-US"><voice name="en-US-DavisNeural"><mstts:express-as style="${style}"><prosody rate="${rate}">${utterance}</prosody></mstts:express-as></voice></speak>`;
+
 export const prompts = {
   greetingTemp: `<speak version="1.0"
   xmlns="http://www.w3.org/2001/10/synthesis"
@@ -8,40 +15,28 @@ export const prompts = {
     temporary greeting
   </voice>
 </speak>`,
-  greeting: `<speak version="1.0"
-  xmlns="http://www.w3.org/2001/10/synthesis"
-  xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="en-US">
-  <mstts:backgroundaudio
-    src="${NGROK_URL}/Ascent_of_the_Champion.mp3"
-    volume="0.15" />
-  <voice name="en-US-DavisNeural">
-    <mstts:express-as style="excited">
-      <break time="1.5s" /> Ladies and gentlemen! <break time="0.2s" /> Welcome to <prosody
-        pitch="-5%">
-        <emphasis level="strong">The 20-question game!</emphasis>
-      </prosody>
-      <break time="0.5s" />
-      I'm your host, Andrew! Today, your wits will be put to the ultimate
-        test. Your objective? To guess the secret word I'm thinking of, using nothing but <emphasis
-          level="strong">yes or no</emphasis> questions.
-      <break time="0.6s" />
-      Choose from one of our exciting categories to begin, or... if you're
-        feeling truly adventurous... ask for a <emphasis level="moderate">random</emphasis> word!
-      <break time="1.0s" />
-      <prosody pitch="+5%"> The clock is ticking... <break time="0.4s" />
-    <emphasis
-          level="strong">Are you ready to play?!</emphasis>
-      </prosody>
-    </mstts:express-as>
-  </voice>
-</speak>`,
-  noInput: "I can't hear you!",
-  invalidCategory:
+  greeting: `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="en-US"><mstts:backgroundaudio src="${NGROK_URL}/Ascent_of_the_Champion.mp3" volume="0.15" /><voice name="en-US-DavisNeural"><mstts:express-as style="excited"><prosody rate="1.2"><break time="1.5s" /> Ladies and gentlemen! Welcome to <prosody pitch="-5%"><emphasis level="moderate">The 20-question game!</emphasis></prosody>I'm your host, Davis! Today, your wits will be put to the ultimate test. <prosody pitch="-5%">Your objective?</prosody>To guess the secret word I'm thinking of, using nothing but <prosody pitch="-5%"><emphasis level="moderate">yes or no</emphasis></prosody> questions. Choose from Animal, Celebrity, Country, or Sports to begin, or... if you're feeling truly adventurous... ask for a <prosody pitch="-5%"><emphasis level="moderate">random</emphasis></prosody> word! <break time="0.5s" /> The clock is ticking... <prosody pitch="-5%"><emphasis level="moderate">Choose your category now.</emphasis></prosody></prosody></mstts:express-as></voice></speak>`,
+  noInput: ssmlWrapper(
+    `<prosody pitch="-5%">I can't hear you!</prosody>`,
+    "shouting",
+  ),
+  invalidCategory: ssmlWrapper(
     "I didn't quite catch that. Please choose Animal, Celebrity, Country, Sports, or Random.",
+    "chat",
+    "1.1",
+  ),
   categorySelected: (category: string | null) =>
-    `You've selected the category ${category}.`,
-  secretWordGenerated:
+    ssmlWrapper(`You've selected the category ${category}.`, "cheerful"),
+  secretWordGenerated: ssmlWrapper(
     "I've generated a secret word. You may begin to ask questions!",
+    "cheerful",
+  ),
+  gameOver: (isCorrectGuess: boolean) =>
+    ssmlWrapper(
+      `${!isCorrectGuess ? "Unfortunately, you have ran out of questions.<break time='0.5s' />" : ""}Game over! Thanks for playing!`,
+      isCorrectGuess ? "excited" : "sad",
+      "1.2",
+    ),
   systemPrompt: (
     secretWord: string,
   ) => `You are the host of a 20 Questions game.

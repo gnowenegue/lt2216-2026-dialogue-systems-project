@@ -5,7 +5,7 @@ import { assign, fromPromise, setup } from "xstate";
 
 import { GROQ_API_KEY } from "./azure";
 import { settings, speechSynthesizer, totalQuestionsAllowed } from "./config";
-import { prompts } from "./prompts";
+import { prompts, ssmlWrapper } from "./prompts";
 import type { DMContext, DMEvents, GroqResponse, NLUObject } from "./types";
 import words from "./words";
 
@@ -15,6 +15,8 @@ let playbackCancelled = false;
 
 const playSSML = (ssml: string, onComplete: () => void) => {
   playbackCancelled = false;
+
+  console.log("SSML", ssml);
 
   speechSynthesizer.speakSsmlAsync(
     ssml,
@@ -177,19 +179,6 @@ export const dmMachine = setup({
         currentAudioSource = null;
       }
     },
-    /* "ssml.stop": () => {
-      player.pause();
-
-      try {
-        const audioNode = (player as any).internalAudio;
-        // Ensure the node exists and the duration is a valid, finite number
-        if (audioNode && Number.isFinite(audioNode.duration)) {
-          audioNode.currentTime = audioNode.duration;
-        }
-      } catch (err) {
-        console.error("⚠️ Failed to safely clear the audio buffer:", err);
-      }
-    }, */
     "spst.listen": ({ context }, params?: { noInputTimeout?: number }) =>
       context.spstRef.send({
         type: "LISTEN",
@@ -305,7 +294,6 @@ export const dmMachine = setup({
   initial: "Prepare",
   on: {
     RECOGNISED: { actions: "spst.recognised" },
-    RESET: { target: ".Greeting", actions: "stopAudio" },
   },
   states: {
     Prepare: {
@@ -355,13 +343,13 @@ export const dmMachine = setup({
         },
         InvalidCategory: {
           entry: {
-            type: "spst.speak",
-            params: { utterance: prompts.invalidCategory },
+            type: "speakSSML",
+            params: { ssml: prompts.invalidCategory },
           },
           on: { SPEAK_COMPLETE: "Listen" },
         },
         NoInput: {
-          entry: { type: "spst.speak", params: { utterance: prompts.noInput } },
+          entry: { type: "speakSSML", params: { ssml: prompts.noInput } },
           on: { SPEAK_COMPLETE: "Listen" },
         },
         Done: {
@@ -375,9 +363,9 @@ export const dmMachine = setup({
       states: {
         Prompt: {
           entry: {
-            type: "spst.speak",
+            type: "speakSSML",
             params: ({ context }) => ({
-              utterance: prompts.categorySelected(context.selectedCategory),
+              ssml: prompts.categorySelected(context.selectedCategory),
             }),
           },
           on: { SPEAK_COMPLETE: "AssignSecretWord" },
@@ -390,8 +378,8 @@ export const dmMachine = setup({
         },
         PromptStartGame: {
           entry: {
-            type: "spst.speak",
-            params: { utterance: prompts.secretWordGenerated },
+            type: "speakSSML",
+            params: { ssml: prompts.secretWordGenerated },
           },
           on: { SPEAK_COMPLETE: "Listen" },
         },
@@ -412,7 +400,7 @@ export const dmMachine = setup({
           ],
         },
         NoInput: {
-          entry: { type: "spst.speak", params: { utterance: prompts.noInput } },
+          entry: { type: "speakSSML", params: { ssml: prompts.noInput } },
           on: { SPEAK_COMPLETE: "Listen" },
         },
         AskQuestion: {
@@ -461,28 +449,29 @@ export const dmMachine = setup({
         },
         HandleAskingQuestion: {
           entry: {
-            type: "spst.speak",
+            type: "speakSSML",
             params: ({ context: { questionStatus } }) => ({
-              utterance: `${questionStatus?.answer}. ${questionStatus?.explanation}`,
+              ssml: ssmlWrapper(
+                `${questionStatus?.answer}. ${questionStatus?.explanation}`,
+                questionStatus?.answer?.toLowerCase() === "yes"
+                  ? "cheerful"
+                  : "sad",
+                "1.2",
+              ),
             }),
           },
 
           on: { SPEAK_COMPLETE: "CheckQuestionsRemaining" },
         },
-        /* CheckGuessingWord: {
-          always: [
-            {
-              guard: "isGuessCorrect",
-              actions: "assignGameWon",
-              target: "HandleGuessingWord",
-            },
-          ],
-        }, */
         HandleGuessingWord: {
           entry: {
-            type: "spst.speak",
+            type: "speakSSML",
             params: ({ context: { questionStatus } }) => ({
-              utterance: questionStatus?.explanation ?? "",
+              ssml: ssmlWrapper(
+                questionStatus?.explanation ?? "",
+                questionStatus?.is_correct_guess ? "excited" : "sad",
+                "1.2",
+              ),
             }),
           },
           on: {
@@ -494,9 +483,13 @@ export const dmMachine = setup({
         },
         HandleInvalidIntent: {
           entry: {
-            type: "spst.speak",
+            type: "speakSSML",
             params: ({ context: { questionStatus } }) => ({
-              utterance: questionStatus?.explanation ?? "",
+              ssml: ssmlWrapper(
+                questionStatus?.explanation ?? "",
+                "sad",
+                "1.2",
+              ),
             }),
           },
           on: { SPEAK_COMPLETE: "Listen" },
@@ -513,8 +506,10 @@ export const dmMachine = setup({
         },
         GameOver: {
           entry: {
-            type: "spst.speak",
-            params: { utterance: "Game over! Thanks for playing!" },
+            type: "speakSSML",
+            params: ({ context: { questionStatus } }) => ({
+              ssml: prompts.gameOver(questionStatus!.is_correct_guess),
+            }),
           },
           on: { SPEAK_COMPLETE: "Delay" },
         },

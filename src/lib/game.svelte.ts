@@ -81,7 +81,10 @@ export const createGame = (inspector: any) => {
 
   const actions = {
     start: () => dmActor.send({ type: "CLICK" }),
-    skip: () => dmActor.send({ type: "SPEAK_COMPLETE" }),
+    skip: () => {
+      // dmActor.send({ type: "stopAudio" });
+      dmActor.send({ type: "SPEAK_COMPLETE" });
+    },
     submitText: (text: string) => {
       dmActor.send({
         type: "RECOGNISED",

@@ -21,7 +21,8 @@ export type DMEvents =
   | SpeechStateExternalEvent
   | { type: "CLICK" }
   | { type: "DONE" }
-  | { type: "RESET" };
+  | { type: "RESET" }
+  // | { type: "stopAudio" };
 
 export interface ExtraInformation {
   extraInformationKind: string;
