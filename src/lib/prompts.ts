@@ -1,5 +1,6 @@
 import { NGROK_URL } from "./azure";
 
+// wraps text in SSML for Davis voice
 export const ssmlWrapper = (
   utterance: string,
   style: string = "chat",
@@ -7,6 +8,7 @@ export const ssmlWrapper = (
 ) =>
   `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="en-US"><voice name="en-US-DavisNeural"><mstts:express-as style="${style}"><prosody rate="${rate}">${utterance}</prosody></mstts:express-as></voice></speak>`;
 
+// predefined game prompts and templates
 export const prompts = {
   greetingTemp: `<speak version="1.0"
   xmlns="http://www.w3.org/2001/10/synthesis"
@@ -37,6 +39,7 @@ export const prompts = {
       isCorrectGuess ? "excited" : "sad",
       "1.2",
     ),
+  // instructions for Groq to behave as a game master
   systemPrompt: (
     secretWord: string,
   ) => `You are the host of a 20 Questions game.

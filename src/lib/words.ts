@@ -1,3 +1,4 @@
+// words used by the game engine
 export default {
   animal: [
     "elephant",

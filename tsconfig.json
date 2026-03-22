@@ -16,6 +16,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
 
+    // path aliases for cleaner imports
     "paths": {
       "$lib/*": ["./src/lib/*"],
       "$components/*": ["./src/components/*"]

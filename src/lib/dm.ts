@@ -442,6 +442,12 @@ export const dmMachine = setup({
                 log: `You asked: ${utterance}`,
               }),
             },
+            {
+              type: "addLog",
+              params: ({ context: { questionStatus } }) => ({
+                log: `Davis: ${!!questionStatus?.answer ? questionStatus.answer + ", " : ""}${questionStatus?.explanation}`,
+              }),
+            },
           ],
           always: [
             {

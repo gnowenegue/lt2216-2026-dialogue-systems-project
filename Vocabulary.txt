@@ -18,3 +18,224 @@ anything
 whatever
 surprise me
 mix it up
+
+i'll choose animal.
+let's do celebrities.
+country please.
+i want to play sports.
+surprise me!
+random category.
+anything is fine.
+whatever you pick.
+i'll go with nations.
+famous people.
+
+is it a person?
+is it bigger than a breadbox?
+can i find it in a house?
+is it colorful?
+is it real?
+does it exist today?
+is it made of wood?
+can you eat it?
+is it heavy?
+does it make noise?
+
+does it have four legs?
+can it fly?
+does it live in the ocean?
+is it a mammal?
+does it eat meat?
+is it a pet?
+does it have fur?
+does it lay eggs?
+is it found in Africa?
+is it very small?
+is it a reptile?
+does it have a tail?
+is it nocturnal?
+can it swim?
+is it a bird?
+does it live in the jungle?
+is it an insect?
+does it have stripes?
+can it run fast?
+is it extinct?
+
+is the person female?
+are they still alive?
+are they a singer?
+are they an actor?
+are they from the US?
+have they won an Oscar?
+are they an athlete?
+do they have blonde hair?
+are they a politician?
+are they over 50 years old?
+are they a YouTuber?
+do they perform on stage?
+are they a billionaire?
+are they in a band?
+do they play a sport?
+are they British?
+are they a comedian?
+have they been in a Marvel movie?
+are they a model?
+are they a scientist?
+
+is it in Europe?
+is it in Asia?
+does it have a coastline?
+is it a large country?
+is the weather hot there?
+do they speak English there?
+is it an island?
+is it in the Southern Hemisphere?
+does it have a desert?
+is the population over 100 million?
+is it in South America?
+does it share a border with China?
+is it famous for its food?
+is it a cold country?
+does it have mountains?
+is it in the Middle East?
+is the flag red and white?
+was it part of the Roman Empire?
+is it a monarchy?
+is it in Africa?
+
+is it a team sport?
+does it use a ball?
+is it played indoors?
+is it an Olympic sport?
+do you play it on grass?
+does it require a racket?
+is it a water sport?
+do players wear helmets?
+is it popular in America?
+is it a winter sport?
+does it involve running?
+is it a combat sport?
+do you play it on a court?
+does it use a net?
+is it played with a stick?
+is it a racing sport?
+does it have a goalkeeper?
+are there 11 players on a team?
+is it played on ice?
+does it use a hoop?
+
+is it a lion?
+is it Taylor Swift?
+are you thinking of France?
+is it basketball?
+is the answer a dog?
+is it Elon Musk?
+is it Japan?
+is it football?
+are you a giraffe?
+is it a penguin?
+
+elephant
+penguin
+giraffe
+kangaroo
+dolphin
+hamster
+octopus
+cheetah
+platypus
+gorilla
+lion
+tiger
+zebra
+panda
+koala
+wolf
+fox
+rabbit
+squirrel
+hedgehog
+crocodile
+turtle
+frog
+eagle
+owl
+parrot
+shark
+whale
+horse
+monkey
+
+Beyonce
+Tom Hanks
+Taylor Swift
+Elon Musk
+Brad Pitt
+Rihanna
+Lionel Messi
+Oprah Winfrey
+Jackie Chan
+Lady Gaga
+Cristiano Ronaldo
+Will Smith
+Angelina Jolie
+Dwayne Johnson
+Adele
+Bill Gates
+Meryl Streep
+Leonardo DiCaprio
+Serena Williams
+Justin Bieber
+Jennifer Aniston
+Robert Downey Jr
+Kim Kardashian
+David Beckham
+Emma Watson
+Stephen Hawking
+Malala Yousafzai
+Barack Obama
+Shakira
+Tom Cruise
+
+Switzerland
+Japan
+Brazil
+Australia
+Canada
+Egypt
+Norway
+Thailand
+Mexico
+Iceland
+France
+Italy
+India
+South Africa
+New Zealand
+Greece
+South Korea
+Argentina
+Kenya
+Vietnam
+
+basketball
+tennis
+cricket
+volleyball
+badminton
+football
+soccer
+rugby
+hockey
+boxing
+wrestling
+cycling
+skiing
+surfing
+karate
+baseball
+swimming
+fencing
+archery
+golf
