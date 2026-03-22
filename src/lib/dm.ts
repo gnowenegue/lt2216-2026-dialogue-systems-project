@@ -9,12 +9,26 @@ import { prompts, ssmlWrapper } from "./prompts";
 import type { DMContext, DMEvents, GroqResponse, NLUObject } from "./types";
 import words from "./words";
 
-const audioContext = new AudioContext();
+let audioContext: AudioContext | null = null;
 let currentAudioSource: AudioBufferSourceNode | null = null;
 let playbackCancelled = false;
 
+// play audio using speech synthesizer
 const playSSML = (ssml: string, onComplete: () => void) => {
   playbackCancelled = false;
+  if (typeof window !== "undefined" && !audioContext) {
+    audioContext = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
+  }
+
+  if (!audioContext) {
+    console.warn("⚠️ AudioContext not available. Skipping playback.");
+    onComplete();
+    return;
+  }
+
+  const ctx = audioContext;
 
   console.log("SSML", ssml);
 
@@ -31,18 +45,16 @@ const playSSML = (ssml: string, onComplete: () => void) => {
       if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
         try {
           const audioData = result.audioData;
-          const audioBuffer = await audioContext.decodeAudioData(
-            audioData.slice(0),
-          );
+          const audioBuffer = await ctx.decodeAudioData(audioData.slice(0));
 
           if (playbackCancelled) {
             onComplete();
             return;
           }
 
-          const source = audioContext.createBufferSource();
+          const source = ctx.createBufferSource();
           source.buffer = audioBuffer;
-          source.connect(audioContext.destination);
+          source.connect(ctx.destination);
           currentAudioSource = source;
 
           source.onended = () => {
@@ -67,6 +79,7 @@ const playSSML = (ssml: string, onComplete: () => void) => {
   );
 };
 
+// extract category from NLU
 const getCategoryFromNLU = (nluResult: NLUObject | null): string | null => {
   if (!nluResult) return null;
 
@@ -89,6 +102,7 @@ const getCategoryFromNLU = (nluResult: NLUObject | null): string | null => {
   return category ?? null;
 };
 
+// pick random secret word based on category
 const generateSecretWord = (category: string | null): string | null => {
   if (!category) return null;
 
@@ -106,6 +120,7 @@ const generateSecretWord = (category: string | null): string | null => {
   return categoryWords[Math.floor(Math.random() * categoryWords.length)];
 };
 
+// ask Groq API to process question
 const processQuestionWithGroq = async (
   utterance: string,
   secretWord: string,
@@ -126,7 +141,7 @@ const processQuestionWithGroq = async (
             { role: "user", content: utterance },
           ],
           response_format: { type: "json_object" },
-          temperature: 0.5, // Allow for varied conversational feedback
+          temperature: 0.5, // allow for varied conversational feedback
         }),
       },
     );
@@ -171,7 +186,7 @@ export const dmMachine = setup({
     stopAudio: () => {
       playbackCancelled = true;
       if (currentAudioSource) {
-        currentAudioSource.onended = null; // Prevent duplicate SPEAK_COMPLETE
+        currentAudioSource.onended = null; // prevent duplicate SPEAK_COMPLETE
         try {
           currentAudioSource.stop();
         } catch (e) {}
@@ -411,7 +426,7 @@ export const dmMachine = setup({
               secretWord: secretWord ?? "",
             }),
             onDone: {
-              target: "ProcessQuestion", // Or next state logic
+              target: "ProcessQuestion", // transition to next state
               actions: assign({ questionStatus: ({ event }) => event.output }),
             },
           },

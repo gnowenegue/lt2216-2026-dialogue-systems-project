@@ -34,7 +34,7 @@
     game.values,
   );
 
-  // Still logging for convenience in dev
+  // log state updates for dev convenience
   $effect(() => {
     console.group("State update");
     console.log("DM State:", $state.snapshot(game.state.value));

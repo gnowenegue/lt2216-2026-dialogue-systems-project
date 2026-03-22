@@ -8,14 +8,14 @@ export const createGame = (inspector: any) => {
     inspect: inspector,
   }).start();
 
-  // 1. Raw State (The Source of Truth)
+  // raw state (the source of truth)
   let snapshot = $state(dmActor.getSnapshot());
 
   dmActor.subscribe((newSnapshot) => {
     snapshot = newSnapshot;
   });
 
-  // Derived internal logic for child actors (SpeechState)
+  // derived internal logic for child actors
   const spstRef = $derived(snapshot.context.spstRef);
 
   let spstSnapshot = $state(
@@ -82,7 +82,7 @@ export const createGame = (inspector: any) => {
   const actions = {
     start: () => dmActor.send({ type: "CLICK" }),
     skip: () => {
-      // dmActor.send({ type: "stopAudio" });
+      // simulate SPEAK_COMPLETE immediately
       dmActor.send({ type: "SPEAK_COMPLETE" });
     },
     submitText: (text: string) => {

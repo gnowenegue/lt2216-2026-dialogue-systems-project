@@ -29,10 +29,11 @@ export const settings: Settings = {
 };
 
 const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
-// export const player = new sdk.SpeakerAudioDestination();
-// export const audioConfig = sdk.AudioConfig.fromSpeakerOutput(player);
+
+// initialize SpeechSynthesizer
 export const speechSynthesizer = new sdk.SpeechSynthesizer(speechConfig, null);
 
+// get total questions from URL query parameter
 const getQuestionsFromUrl = () => {
   if (typeof window === "undefined") return 20;
   const params = new URLSearchParams(window.location.search);
