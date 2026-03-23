@@ -175,10 +175,10 @@ export const dmMachine = setup({
     speakSSML: ({ self }, params: { ssml: string }) => {
       playSSML(params.ssml, () => self.send({ type: "SPEAK_COMPLETE" }));
     },
-    "spst.speak": ({ context }, params: { utterance: string }) => {
+    "speechstate.speak": ({ context }, params: { utterance: string }) => {
       if (!params.utterance) return;
       console.log("DM speaking:", params.utterance);
-      context.spstRef.send({
+      context.speechstateRef.send({
         type: "SPEAK",
         value: { utterance: params.utterance },
       });
@@ -194,8 +194,8 @@ export const dmMachine = setup({
         currentAudioSource = null;
       }
     },
-    "spst.listen": ({ context }, params?: { noInputTimeout?: number }) =>
-      context.spstRef.send({
+    "speechstate.listen": ({ context }, params?: { noInputTimeout?: number }) =>
+      context.speechstateRef.send({
         type: "LISTEN",
         value: {
           nlu: true,
@@ -204,7 +204,7 @@ export const dmMachine = setup({
             : {}),
         },
       }),
-    "spst.recognised": assign(({ event }) => {
+    "speechstate.recognised": assign(({ event }) => {
       const recognisedEvent = event as {
         type: "RECOGNISED";
         value: Hypothesis[];
@@ -219,12 +219,12 @@ export const dmMachine = setup({
         utterance,
       };
     }),
-    "spst.clearTurn": assign({
+    "speechstate.clearTurn": assign({
       lastResult: null,
       interpretation: null,
       utterance: null,
     }),
-    "spst.resetSession": assign({
+    "speechstate.resetSession": assign({
       lastResult: null,
       interpretation: null,
       utterance: null,
@@ -294,7 +294,7 @@ export const dmMachine = setup({
   },
 }).createMachine({
   context: ({ spawn }) => ({
-    spstRef: spawn(speechstate, { input: settings }),
+    speechstateRef: spawn(speechstate, { input: settings }),
     lastResult: null,
     interpretation: null,
     utterance: null,
@@ -308,11 +308,11 @@ export const dmMachine = setup({
   id: "DM",
   initial: "Prepare",
   on: {
-    RECOGNISED: { actions: "spst.recognised" },
+    RECOGNISED: { actions: "speechstate.recognised" },
   },
   states: {
     Prepare: {
-      entry: ({ context }) => context.spstRef.send({ type: "PREPARE" }),
+      entry: ({ context }) => context.speechstateRef.send({ type: "PREPARE" }),
       on: { ASRTTS_READY: "WaitToStart" },
     },
     WaitToStart: {
@@ -320,7 +320,7 @@ export const dmMachine = setup({
     },
     Greeting: {
       initial: "Prompt",
-      entry: "spst.resetSession",
+      entry: "speechstate.resetSession",
       states: {
         Prompt: {
           // entry: { type: "speakSSML", params: { ssml: prompts.greetingTemp } },
@@ -331,9 +331,9 @@ export const dmMachine = setup({
           },
         },
         Listen: {
-          entry: "spst.listen",
+          entry: "speechstate.listen",
           on: {
-            ASR_NOINPUT: { actions: "spst.clearTurn" },
+            ASR_NOINPUT: { actions: "speechstate.clearTurn" },
             LISTEN_COMPLETE: { target: "CheckCategory" },
           },
         },
@@ -399,9 +399,9 @@ export const dmMachine = setup({
           on: { SPEAK_COMPLETE: "Listen" },
         },
         Listen: {
-          entry: { type: "spst.listen", params: { noInputTimeout: 10000 } },
+          entry: { type: "speechstate.listen", params: { noInputTimeout: 10000 } },
           on: {
-            ASR_NOINPUT: { actions: "spst.clearTurn" },
+            ASR_NOINPUT: { actions: "speechstate.clearTurn" },
             LISTEN_COMPLETE: { target: "CheckInput" },
           },
         },
@@ -546,7 +546,7 @@ export const dmMachine = setup({
       onDone: "Done",
     },
     Done: {
-      entry: "spst.resetSession",
+      entry: "speechstate.resetSession",
       on: { CLICK: "Greeting" },
     },
   },

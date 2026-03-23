@@ -3,7 +3,6 @@
 
   import { createBrowserInspector } from "@statelyai/inspect";
 
-  import Answer from "$components/Answer.svelte";
   import Button from "$components/Button.svelte";
   import ChatForm from "$components/ChatForm.svelte";
   import GameStatus from "$components/GameStatus.svelte";
@@ -21,20 +20,20 @@
     isRecognising,
     showForm,
     showGameButton,
-    showGameStatus,
     showInstruction,
     showLogs,
     showQuestionsRemaining,
     showRules,
-    showSecretWord,
     showSkipButton,
   } = $derived(game.conditions);
 
-  let { instructionHTML, statusText, secretWord, gameWon } = $derived(
+  let { gameWon, instructionHTML, secretWord, statusText } = $derived(
     game.values,
   );
 
-  // log state updates for dev convenience
+  let { skip, start, submitText } = $derived(game.actions);
+
+  // log state updates
   $effect(() => {
     console.group("State update");
     console.log("DM State:", $state.snapshot(game.state.value));
@@ -47,7 +46,7 @@
   <Logo />
 
   {#if showGameButton}
-    <Button disabled={!isGameLoaded} onclick={game.actions.start}>
+    <Button disabled={!isGameLoaded} onclick={start}>
       {isGameLoaded ? "Start Game" : "Loading Game..."}
     </Button>
   {/if}
@@ -61,7 +60,7 @@
   {/if}
 
   {#if showSkipButton}
-    <Button onclick={game.actions.skip}>Skip Introduction</Button>
+    <Button onclick={skip}>Skip Introduction</Button>
   {/if}
 
   {#if showLogs}
@@ -71,23 +70,19 @@
   <MicStatus {isRecognising} {statusText} />
 
   {#if showForm}
-    <ChatForm {isRecognising} onSubmit={game.actions.submitText} />
+    <ChatForm {isRecognising} onSubmit={submitText} />
   {/if}
 
   {#if showQuestionsRemaining}
     <h3 class="mt-4 text-lg font-semibold text-slate-700 dark:text-slate-300">
       Questions Remaining:
-      <span class="font-extrabold text-indigo-500">
+      <span class="font-extrabold text-indigo-500 dark:text-indigo-400">
         {game.state.context.questionsRemaining}
       </span>
     </h3>
   {/if}
 
-  <!-- {#if showSecretWord}
-    <Answer {secretWord} />
-  {/if} -->
-
   {#if gameWon !== null}
-    <GameStatus {gameWon} {secretWord} onReset={game.actions.reset} />
+    <GameStatus {gameWon} {secretWord} />
   {/if}
 </div>

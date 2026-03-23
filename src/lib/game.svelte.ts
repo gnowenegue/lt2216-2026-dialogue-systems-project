@@ -16,22 +16,22 @@ export const createGame = (inspector: any) => {
   });
 
   // derived internal logic for child actors
-  const spstRef = $derived(snapshot.context.spstRef);
+  const speechstateRef = $derived(snapshot.context.speechstateRef);
 
-  let spstSnapshot = $state(
-    dmActor.getSnapshot().context.spstRef.getSnapshot(),
+  let speechstateSnapshot = $state(
+    dmActor.getSnapshot().context.speechstateRef.getSnapshot(),
   );
 
   $effect(() => {
-    const sub = spstRef.subscribe((s) => {
-      spstSnapshot = s;
+    const sub = speechstateRef.subscribe((s) => {
+      speechstateSnapshot = s;
     });
     return () => sub.unsubscribe();
   });
 
   const metaValues = $derived(
     Object.values(
-      (spstSnapshot?.getMeta() as Record<string, { view?: string }>) ?? {},
+      (speechstateSnapshot?.getMeta() as Record<string, { view?: string }>) ?? {},
     ),
   );
   const metaView = $derived(metaValues[0]?.view);
@@ -52,17 +52,6 @@ export const createGame = (inspector: any) => {
     showLogs: snapshot.matches("Game"),
     showQuestionsRemaining: snapshot.matches("Game"),
     showRules: snapshot.matches("Greeting") || snapshot.matches("Game"),
-    showGameStatus:
-      snapshot.matches({ Game: "GameOver" }) ||
-      snapshot.matches({ Game: "Delay" }),
-    showSecretWord:
-      snapshot.matches({
-        Game: "GameOver",
-      }) ||
-      snapshot.matches({
-        Game: "Delay",
-      }) ||
-      snapshot.matches("Done"),
     showSkipButton: snapshot.matches({
       Greeting: "Prompt",
     }),
@@ -92,14 +81,13 @@ export const createGame = (inspector: any) => {
         nluValue: null,
       } as DMEvents);
 
-      const asrRef = spstRef.getSnapshot().context.asrRef;
+      const asrRef = speechstateRef.getSnapshot().context.asrRef;
       if (asrRef) {
         asrRef.send({ type: "STOP" });
       } else {
         dmActor.send({ type: "LISTEN_COMPLETE" });
       }
     },
-    reset: () => dmActor.send({ type: "RESET" }),
   };
 
   return {

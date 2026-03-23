@@ -3,7 +3,7 @@ import type { ActorRef } from "xstate";
 
 // context data for the state machine
 export interface DMContext {
-  spstRef: ActorRef<any, any>;
+  speechstateRef: ActorRef<any, any>;
   lastResult: Hypothesis[] | null;
   interpretation: NLUObject | null;
 
@@ -23,8 +23,6 @@ export type DMEvents =
   | SpeechStateExternalEvent
   | { type: "CLICK" }
   | { type: "DONE" }
-  | { type: "RESET" }
-  // | { type: "stopAudio" };
 
 export interface ExtraInformation {
   extraInformationKind: string;

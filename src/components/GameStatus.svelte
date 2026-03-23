@@ -1,13 +1,10 @@
 <script lang="ts">
-  import Button from "./Button.svelte";
-
   interface Props {
     gameWon: boolean | null;
     secretWord: string | null;
-    onReset: () => void;
   }
 
-  let { gameWon, secretWord, onReset }: Props = $props();
+  let { gameWon, secretWord }: Props = $props();
 
   // show victory or game over screen
 </script>
@@ -58,14 +55,10 @@
             >Secret Word</span
           >
           <span
-            class="text-4xl font-black tracking-wider text-indigo-600 uppercase dark:text-indigo-400"
+            class="text-4xl font-black tracking-wider text-indigo-600 uppercase dark:text-indigo-300"
           >
             {secretWord}
           </span>
-        </div>
-
-        <div class="flex justify-center hidden w-full">
-          <Button variant="primary" onclick={onReset}>Play Again</Button>
         </div>
       </div>
     </div>
