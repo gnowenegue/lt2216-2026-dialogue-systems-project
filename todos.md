@@ -24,18 +24,18 @@
 
 - [x] Set up project and schema definition.
 - [x] Prepare utterance file to train and deploy the model.
-- [x] Implement intent and entities extraction for category selection.
+- [x] Implement intent and entity extraction for category selection.
 
 ## Phase 4: Groq Integration (Completed)
 
 - [x] Set up GroqCloud account and generate API key.
-- [x] Design system prompt for intent classification and yes/no question reasoning.
+- [x] Design system prompt for intent classification and Yes/No question reasoning.
 - [x] Integrate Groq API.
 
 ## Phase 5: Voice & UI Integration (Completed)
 
 - [x] Add a text input field as a fallback for typed interaction.
-- [x] Compare Svelte 5 vs. Lit for XState integration.
+- [x] Compare Svelte vs. Lit for XState integration.
 - [x] Implement a Physical UI Skip Button to resolve barge-in/acoustic echo issues.
 - [x] Build a reactive UI to display:
   - [x] Game rules.
@@ -58,3 +58,7 @@
 - [x] **ASR Optimization:** Improve single-word recognition and common phrases using Azure Custom Speech.
 - [x] **Documentation:** Update README with key technical reflections.
 - [x] **Presentation:** Prepare the slides.
+
+## Phase 8: Deployment (Completed)
+
+- [x] **Deploy to Vercel:** Project is live at [https://lt2216-2026-dialogue-systems-projec.vercel.app/](https://lt2216-2026-dialogue-systems-projec.vercel.app/)

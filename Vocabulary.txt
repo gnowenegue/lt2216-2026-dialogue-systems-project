@@ -40,6 +40,7 @@ is it made of wood?
 can you eat it?
 is it heavy?
 does it make noise?
+is it alive?
 
 does it have four legs?
 can it fly?
