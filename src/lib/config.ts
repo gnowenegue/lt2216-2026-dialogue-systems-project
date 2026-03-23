@@ -1,18 +1,18 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import type { Settings } from "speechstate";
 
-import { KEY, NLU_KEY } from "./azure";
+// import { KEY, NLU_KEY } from "./azure";
 
 const azureCredentials = {
   endpoint:
     "https://swedencentral.api.cognitive.microsoft.com/sts/v1.0/issuetoken",
-  key: KEY,
+  key: import.meta.env.VITE_KEY,
 };
 
 const azureLanguageCredentials = {
   endpoint:
     "https://lt2216.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2024-11-15-preview",
-  key: NLU_KEY,
+  key: import.meta.env.VITE_NLU_KEY,
   deploymentName: "Project",
   projectName: "Project",
 };
@@ -28,7 +28,10 @@ export const settings: Settings = {
   speechRecognitionEndpointId: "2b4b8761-8d0e-44ce-89a5-15ca6b7cd335",
 };
 
-const speechConfig = sdk.SpeechConfig.fromSubscription(KEY, "swedencentral");
+const speechConfig = sdk.SpeechConfig.fromSubscription(
+  import.meta.env.VITE_KEY,
+  "swedencentral",
+);
 
 // initialize SpeechSynthesizer
 export const speechSynthesizer = new sdk.SpeechSynthesizer(speechConfig, null);

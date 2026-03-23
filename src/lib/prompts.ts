@@ -1,4 +1,5 @@
-import { NGROK_URL } from "./azure";
+// import { NGROK_URL } from "./azure";
+const NGROK_URL = import.meta.env.VITE_NGROK_URL;
 
 // wraps text in SSML for Davis voice
 export const ssmlWrapper = (

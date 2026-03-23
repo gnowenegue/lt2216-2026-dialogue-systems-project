@@ -3,7 +3,7 @@ import type { Hypothesis } from "speechstate";
 import { speechstate } from "speechstate";
 import { assign, fromPromise, setup } from "xstate";
 
-import { GROQ_API_KEY } from "./azure";
+// import { GROQ_API_KEY } from "./azure";
 import { settings, speechSynthesizer, totalQuestionsAllowed } from "./config";
 import { prompts, ssmlWrapper } from "./prompts";
 import type { DMContext, DMEvents, GroqResponse, NLUObject } from "./types";
@@ -131,7 +131,7 @@ const processQuestionWithGroq = async (
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
