@@ -22,7 +22,7 @@
   </svg>
   <img
     src="/logo.svg"
-    alt="20-Question Game Logo"
+    alt="20-Questions Game Logo"
     class="w-80 h-80"
     style="filter: url(#svg-outline) drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3));"
   />
