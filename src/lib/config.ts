@@ -1,8 +1,6 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import type { Settings } from "speechstate";
 
-// import { KEY, NLU_KEY } from "./azure";
-
 const azureCredentials = {
   endpoint:
     "https://swedencentral.api.cognitive.microsoft.com/sts/v1.0/issuetoken",

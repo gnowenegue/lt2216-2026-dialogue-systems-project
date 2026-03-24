@@ -5,8 +5,6 @@
   }
 
   let { gameWon, secretWord }: Props = $props();
-
-  // show victory or game over screen
 </script>
 
 {#if gameWon !== null}

@@ -323,7 +323,6 @@ export const dmMachine = setup({
       entry: "speechstate.resetSession",
       states: {
         Prompt: {
-          // entry: { type: "speakSSML", params: { ssml: prompts.greetingTemp } },
           entry: { type: "speakSSML", params: { ssml: prompts.greeting } },
           exit: "stopAudio",
           on: {
@@ -399,7 +398,10 @@ export const dmMachine = setup({
           on: { SPEAK_COMPLETE: "Listen" },
         },
         Listen: {
-          entry: { type: "speechstate.listen", params: { noInputTimeout: 10000 } },
+          entry: {
+            type: "speechstate.listen",
+            params: { noInputTimeout: 10000 },
+          },
           on: {
             ASR_NOINPUT: { actions: "speechstate.clearTurn" },
             LISTEN_COMPLETE: { target: "CheckInput" },

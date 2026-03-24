@@ -19,7 +19,9 @@
 
   const handleSubmit = (e: Event) => {
     e.preventDefault();
+
     const text = textInputValue.trim();
+
     if (text) {
       onSubmit(text);
       textInputValue = "";

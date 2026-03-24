@@ -13,10 +13,12 @@ const audioContextMock = {
   decodeAudioData: vi.fn(),
   destination: {},
 };
+
 vi.stubGlobal(
   "AudioContext",
   vi.fn(() => audioContextMock),
 );
+
 vi.stubGlobal("window", { location: { search: "" } });
 
 vi.mock("microsoft-cognitiveservices-speech-sdk", () => {
@@ -34,12 +36,10 @@ vi.mock("microsoft-cognitiveservices-speech-sdk", () => {
   };
 });
 
-vi.mock("./azure", () => ({
-  KEY: "mock-key",
-  NLU_KEY: "mock-nlu-key",
-  GROQ_API_KEY: "mock-groq-key",
-  NGROK_URL: "http://mock-ngrok-url.com",
-}));
+vi.stubEnv("VITE_KEY", "mock-key");
+vi.stubEnv("VITE_NLU_KEY", "mock-nlu-key");
+vi.stubEnv("VITE_GROQ_API_KEY", "mock-groq-key");
+vi.stubEnv("VITE_NGROK_URL", "http://mock-ngrok-url.com");
 
 // mock speechstate to avoid real device access
 vi.mock("speechstate", () => {
@@ -272,18 +272,23 @@ describe("Dialogue Management Machine (dmMachine)", () => {
     actor.send({ type: "SPEAK_COMPLETE" } as any);
     actor.send({ type: "SPEAK_COMPLETE" } as any);
 
-    // guess incorrectly
-    actor.send({
-      type: "RECOGNISED",
-      value: [{ utterance: "lion" }],
-      nluValue: null,
-    } as any);
-    actor.send({ type: "LISTEN_COMPLETE" } as any);
-    await new Promise((r) => setTimeout(r, 0));
+    // guess incorrectly 20 times to run out of questions
+    const initialRemaining = actor.getSnapshot().context.questionsRemaining;
+    for (let i = 0; i < initialRemaining; i++) {
+      actor.send({
+        type: "RECOGNISED",
+        value: [{ utterance: "lion" }],
+        nluValue: null,
+      } as any);
+      actor.send({ type: "LISTEN_COMPLETE" } as any);
+      await new Promise((r) => setTimeout(r, 0));
+      actor.send({ type: "SPEAK_COMPLETE" } as any);
+    }
 
     let snapshot = actor.getSnapshot();
-    expect(snapshot.context.questionsRemaining).toBe(19);
-    expect(snapshot.value).toEqual({ Game: "HandleGuessingWord" });
+    expect(snapshot.context.questionsRemaining).toBe(0);
+    expect(snapshot.context.gameWon).toBe(false);
+    expect(snapshot.value).toEqual({ Game: "GameOver" });
   });
 
   it("Handling Invalid Intent: should not decrement questionsRemaining", async () => {
