@@ -1,25 +1,33 @@
-// middleware.ts
+// middleware.ts (in your project root)
+
 export const config = {
-  // This ensures it runs on all routes, but skips static assets like images/css
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)", "/"],
+  // Protect everything EXCEPT the assets folder and favicon
+  // This prevents the auth popup from triggering for every single .js/.css file
+  matcher: ["/((?!assets|favicon.ico|.*\\..*).*)", "/"],
 };
 
 export default function middleware(request: Request) {
   const authHeader = request.headers.get("authorization");
 
   if (authHeader) {
-    const authValue = authHeader.split(" ")[1];
-    const [user, pwd] = atob(authValue).split(":");
+    try {
+      const authValue = authHeader.split(" ")[1];
+      const decoded = atob(authValue);
+      const [user, pwd] = decoded.split(":");
 
-    if (
-      user === process.env.BASIC_AUTH_USER &&
-      pwd === process.env.BASIC_AUTH_PASSWORD
-    ) {
-      return new Response(null, { status: 200 }); // Continue to the site
+      if (
+        user === process.env.BASIC_AUTH_USER &&
+        pwd === process.env.BASIC_AUTH_PASSWORD
+      ) {
+        // IMPORTANT: Returning nothing tells Vercel to "pass through"
+        // to your Vite static files (index.html, etc.)
+        return;
+      }
+    } catch (e) {
+      // If base64 decoding fails, just fall through to 401
     }
   }
 
-  // Trigger the browser's native login popup
   return new Response("Authentication Required", {
     status: 401,
     headers: {
