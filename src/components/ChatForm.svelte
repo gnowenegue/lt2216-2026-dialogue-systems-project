@@ -34,7 +34,7 @@
     disabled={!isRecognising}
     type="text"
     placeholder="Type your guess or question..."
-    class="w-full px-4 py-2 text-sm border rounded-lg shadow-sm bg-slate-50 border-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder-slate-500 dark:focus:ring-indigo-500/40"
+    class="w-full px-4 py-2 text-sm border rounded-lg shadow-sm bg-slate-200 border-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white dark:placeholder-slate-500 dark:focus:ring-indigo-500/40"
   />
   <Button type="submit" variant="primary" disabled={!isRecognising}>
     Send
