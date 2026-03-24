@@ -1,9 +1,10 @@
-// middleware.ts (in your project root)
-
 export const config = {
-  // Protect everything EXCEPT the assets folder and favicon
-  // This prevents the auth popup from triggering for every single .js/.css file
-  matcher: ["/((?!assets|favicon.ico|.*\\..*).*)", "/"],
+  // protect everything EXCEPT the assets folder and favicon
+  // this prevents the auth popup from triggering for every single .js/.css file
+  // matcher: ["/((?!assets|favicon.ico|.*\\..*).*)", "/"],
+
+  // only run middleware on the root path
+  matcher: "/",
 };
 
 export default function middleware(request: Request) {
@@ -19,12 +20,12 @@ export default function middleware(request: Request) {
         user === process.env.BASIC_AUTH_USER &&
         pwd === process.env.BASIC_AUTH_PASSWORD
       ) {
-        // IMPORTANT: Returning nothing tells Vercel to "pass through"
+        // IMPORTANT: returning nothing tells Vercel to "pass through"
         // to your Vite static files (index.html, etc.)
         return;
       }
     } catch (e) {
-      // If base64 decoding fails, just fall through to 401
+      // if fails, just fall through to 401
     }
   }
 
