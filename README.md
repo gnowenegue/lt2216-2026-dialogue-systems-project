@@ -152,6 +152,7 @@ The project includes a unit testing suite in **Vitest** to ensure dialogue stabi
 
 - **Coverage**: `dmMachine` is tested for category selection, win/loss states, and error handling.
 - **Mocking**: All external APIs (Azure, Groq) and browser APIs (`AudioContext`) are fully mocked.
+- **Manual Testing Helper**: Append `?q=<number>` to the URL to override the default limit (e.g., `?q=3`). This is particularly useful for quickly verifying win/loss conditions without playing a full 20-question session.
 
 ## 👾 Developer Experience
 

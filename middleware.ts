@@ -1,10 +1,6 @@
 export const config = {
-  // protect everything EXCEPT the assets folder and favicon
-  // this prevents the auth popup from triggering for every single .js/.css file
-  // matcher: ["/((?!assets|favicon.ico|.*\\..*).*)", "/"],
-
-  // only run middleware on the root path
-  matcher: "/",
+  // protect the root path and all .js files
+  matcher: ["/", "/(.*).js"],
 };
 
 export default function middleware(request: Request) {
